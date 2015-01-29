@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 '''
+Grant SSH access for a given user by fetching his public key from the server.
+
 This script should be used as SSH forced command.
 '''
 
@@ -41,8 +43,7 @@ def fix_ssh_pubkey(user, pubkey):
 def get_service_url():
     '''get the service URL from cloud config YAML'''
 
-    with open('/var/lib/cloud/instance/user-data.txt', 'rb') as fd:
-        config = yaml.safe_load(fd)
+    config = yaml.safe_load(subprocess.check_output(['sudo', 'cat', '/var/lib/cloud/instance/user-data.txt']))
 
     url = config['ssh_access_granting_service_url'].rstrip('/')
     return url
@@ -111,4 +112,5 @@ if __name__ == '__main__':
     original_command = os.environ.get('SSH_ORIGINAL_COMMAND')
     if original_command:
         sys.argv[1:] = original_command.split()
+
     main(sys.argv[1:])
