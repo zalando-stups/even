@@ -33,3 +33,15 @@ Testing with a local mock service:
     $ python3 -m http.server 9000 &
     $ ./grant-ssh-access-forced-command.py grant-ssh-access testuser
     $ ssh testuser@localhost # try logging in
+
+
+ToDos
+=====
+
+This is purely experimental, but at least the following would be needed:
+
+* Add server endpoint to request access (needs authentication)
+* Implement LDAP integration to retrieve public SSH keys
+* Review security concept
+* Harden everything
+
