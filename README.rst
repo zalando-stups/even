@@ -4,6 +4,21 @@ SSH Access Granting Service
 
 This is work in progress.
 
+Idea
+====
+
+Users can request temporary SSH access to servers by calling the "SSH Access Granting Service" which puts their public SSH key in place.
+
+* The user needs to authenticate against the service
+* The user requests temporary SSH access for a certain host
+* The service instructs the host to grant access via a SSH forced command script
+* The forced command script downloads the user's public SSH key from the service
+* The forced command script configures the ``/home/<user>/.ssh/authorized_keys`` file accordingly
+
+
+Testing
+=======
+
 Testing with a local mock service:
 
 .. code-block:: bash
