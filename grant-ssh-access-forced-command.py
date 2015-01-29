@@ -108,4 +108,7 @@ def main(argv):
 
 
 if __name__ == '__main__':
+    original_command = os.environ.get('SSH_ORIGINAL_COMMAND')
+    if original_command:
+        sys.argv[1:] = original_command.split()
     main(sys.argv[1:])
