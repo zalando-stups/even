@@ -83,6 +83,14 @@ def grant_ssh_access(args):
                               shell_template.format(temp=fd.name, name=user_name, keys_file=keys_file)])
 
 
+def revoke_ssh_access(args):
+    user_name = args.name
+
+    pwd.getpwnam(user_name)
+    # TODO: verify that the user was created by us
+    raise NotImplementedError()
+
+
 def fail_on_missing_command():
     sys.stderr.write('Missing command argument\n')
     sys.exit(1)
@@ -99,6 +107,9 @@ def main(argv):
     subparsers = parser.add_subparsers()
     cmd = subparsers.add_parser('grant-ssh-access')
     cmd.set_defaults(func=grant_ssh_access)
+    cmd.add_argument('name', help='User name', type=user_name)
+    cmd = subparsers.add_parser('revoke-ssh-access')
+    cmd.set_defaults(func=revoke_ssh_access)
     cmd.add_argument('name', help='User name', type=user_name)
     args = parser.parse_args(argv)
 
