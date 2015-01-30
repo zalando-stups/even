@@ -3,6 +3,8 @@
   :url "https://github.com/zalando/ssh-access-granting-service"
   :min-lein-version "2.0.0"
   :dependencies [[org.clojure/clojure "1.6.0"]
+                 ; lifecycle management
+                 [com.stuartsierra/component "0.2.2"]
                  [compojure "1.3.1"]
                  [ring/ring-defaults "0.1.2"]
                  [environ "1.0.0"]
@@ -15,7 +17,11 @@
 
                  ]
   :plugins [[lein-ring "0.8.13"]
-            [lein-environ "1.0.0"]]
+            [lein-environ "1.0.0"]
+            [lein-cloverage "1.0.2"]]
+
+  :aliases {"cloverage" ["with-profile" "test" "cloverage"]}
+
   :ring {:handler server.handler/app}
   :aot :all
   :main server.handler

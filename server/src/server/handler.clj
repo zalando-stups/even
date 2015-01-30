@@ -44,5 +44,5 @@
   (wrap-defaults app-routes site-defaults))
 
 (defn -main [& args]
-  (jetty/run-jetty app {:port 8080 :join? false})
+  (jetty/run-jetty app {:port (or (:http-port env) 8080) :join? false})
   )
