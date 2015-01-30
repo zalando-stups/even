@@ -6,13 +6,17 @@
             [ring.adapter.jetty :as jetty]
             ))
 
+(def user-name-pattern #"^[a-z][a-z0-9-]{0,31}$")
+
 (defn get-public-key [name]
   (slurp (str "public-keys/" name ".pub"))
   )
 
 (defn serve-public-key [name]
-  (get-public-key name)
-  )
+  (if (re-matches user-name-pattern name)
+      (get-public-key name)
+      {:status 400
+       :body "Invalid user name"}))
 
 (defroutes app-routes
   (GET "/" [] "SSH Access Granting Service")
