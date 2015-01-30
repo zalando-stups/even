@@ -4,13 +4,23 @@
             [compojure.route :as route]
             [ring.middleware.defaults :refer [wrap-defaults site-defaults]]
             [ring.adapter.jetty :as jetty]
+            [clj-ldap.client :as ldap]
+            [environ.core :refer [env]]
             ))
 
 (def user-name-pattern #"^[a-z][a-z0-9-]{0,31}$")
 
+(defn ldap-connect [] (ldap/connect {:host (:ldap-host env)
+                                     :bind-dn (:ldap-bind-dn env)
+                                     :password (:ldap-password env)
+                                     :ssl? (Boolean/parseBoolean (:ldap-ssl env))
+                                    }))
+
 (defn get-public-key [name]
-  (slurp (str "public-keys/" name ".pub"))
-  )
+  (let [conn (ldap-connect)]
+            (:sshPublicKey (ldap/get conn (str "uid=" name "," (:ldap-base-dn env))) [:sshPublicKey])
+  ))
+
 
 (defn serve-public-key [name]
   (if (re-matches user-name-pattern name)
