@@ -34,6 +34,11 @@ Testing with a local mock service:
     $ ./grant-ssh-access-forced-command.py grant-ssh-access testuser
     $ ssh testuser@localhost # try logging in
 
+To start a web server for the application, run:
+
+.. code-block:: bash
+
+    $ lein ring server
 
 ToDos
 =====
