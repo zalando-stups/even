@@ -8,7 +8,8 @@
       [environ.core :refer [env]]
       [clojure.tools.logging :as log]
       [schema.core :as s]
-      [clj-ssh.ssh :refer :all]
+      [server.ldap :refer [get-public-key]]
+      [server.ssh :refer [execute-ssh]]
       ))
 
 (def user-name-pattern #"^[a-z][a-z0-9-]{0,31}$")
@@ -18,42 +19,15 @@
               :host-name String
               })
 
-(defrecord Router [config])
+(defrecord Router [config ldap])
 
-(defn ldap-connect [] (ldap/connect {:host (:ldap-host env)
-                                     :bind-dn (:ldap-bind-dn env)
-                                     :password (:ldap-password env)
-                                     :ssl? (Boolean/parseBoolean (:ldap-ssl env))
-                                     }))
-
-(defn get-ldap-user-dn [name]
-      "Build LDAP DN for a given user name"
-      (str "uid=" name "," (:ldap-base-dn env)))
-
-(defn get-public-key [name]
-      "Get a user's public SSH key"
-      (let [conn (ldap-connect)]
-           (:sshPublicKey (ldap/get conn (get-ldap-user-dn name) [:sshPublicKey]))))
-
-
-(defn serve-public-key [name]
+(defn serve-public-key [name ldap]
       (if (re-matches user-name-pattern name)
-        (or (get-public-key name)
+        (or (get-public-key name ldap)
             {:status 404
              :body "User not found"})
         {:status 400
          :body "Invalid user name"}))
-
-(defn execute-ssh [host-name command config]
-      (let [user-name (:ssh-user config)]
-           (log/info "ssh " user-name "@" host-name " " command)
-           (let [agent (ssh-agent {:use-system-ssh-agent false})]
-                (add-identity agent {:private-key-path (:ssh-private-key config)})
-                (let [session (session agent host-name {:username user-name :strict-host-key-checking :no})]
-                     (with-connection session
-                                      (let [result (ssh session {:cmd command})]
-                                           (log/info "Result: " result)
-                                           result))))))
 
 (defn request-access [config req]
       (log/info "Requesting access for " req)
@@ -65,7 +39,7 @@
               :body (str "Failed: " result)})
            ))
 
-(defn- api-routes [{:keys [config]}]
+(defn- api-routes [{:keys [config ldap]}]
        (routes/with-routes
          (swaggered
            "System"
@@ -91,7 +65,7 @@
            :description "Expose SSH public keys"
            (GET* "/public-keys/:name/sshkey.pub" [name]
                  :summary "Download the user's SSH public key"
-                 (serve-public-key name)))))
+                 (serve-public-key name ldap)))))
 
 
 (defn- exception-logging [handler]

@@ -4,6 +4,7 @@
       [environ.core :refer [env]]
       [server.api.http-server :refer [new-http-server]]
       [server.api.router :refer [new-router]]
+      [server.ldap :refer [new-ldap]]
       ))
 
 
@@ -12,7 +13,8 @@
 
       (component/system-map
         :http-server (using (new-http-server config) [:router])
-        :router (using (new-router config) [])
+        :router (using (new-router config) [:ldap])
+        :ldap (using (new-ldap config) [])
         ))
 
 (defn start [system]
