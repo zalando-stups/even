@@ -51,13 +51,19 @@
                 (add-identity agent {:private-key-path (:ssh-private-key config)})
                 (let [session (session agent host-name {:username user-name :strict-host-key-checking :no})]
                      (with-connection session
-                       (let [result (ssh session {:cmd command})]
-                       (println (second result))))))))
+                                      (let [result (ssh session {:cmd command})]
+                                           (log/info "Result: " result)
+                                           result))))))
 
 (defn request-access [config req]
       (log/info "Requesting access for " req)
-      (execute-ssh (:host-name req) (str "grant-ssh-access " (:user-name req)) config)
-      )
+      (let [result (execute-ssh (:host-name req) (str "grant-ssh-access " (:user-name req)) config)]
+           (if (= (:exit result) 0)
+             {:status 200
+              :body "Access requested"}
+             {:status 400
+              :body (str "Failed: " result)})
+           ))
 
 (defn- api-routes [{:keys [config]}]
        (routes/with-routes
