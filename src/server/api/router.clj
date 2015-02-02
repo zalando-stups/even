@@ -59,6 +59,7 @@
                   :summary "Request SSH access to a single host"
                   :return String
                   :body [request AccessRequest]
+                  ;:header-params [authorization :- String]
                   (request-access config request)))
          (swaggered
            "Public Keys"
