@@ -3,3 +3,4 @@ public-keys/
 target/
 .lein*
 profiles.clj
+.idea
