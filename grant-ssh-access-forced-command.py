@@ -15,11 +15,17 @@ import sys
 import tempfile
 import yaml
 
+from pathlib import Path
+
 
 USER_NAME_PATTERN = re.compile('^[a-z][a-z0-9-]{0,31}$')
 
+CONFIG_FILE_PATH = Path('/etc/ssh-access-granting-service.yaml')
 
-def fix_ssh_pubkey(user, pubkey):
+
+def fix_ssh_pubkey(user: str, pubkey: str):
+    '''Validate that the given public SSH key looks like a valid OpenSSH key which can be used in authorized_keys'''
+
     pubkey = pubkey.strip()
     parts = pubkey.split()[:2]  # just the type and the key, the "mail" is probably wrong
     if not parts:
@@ -41,15 +47,21 @@ def fix_ssh_pubkey(user, pubkey):
 
 
 def get_service_url():
-    '''get the service URL from cloud config YAML'''
+    '''Get the service URL from the global config file or from cloud config YAML'''
 
-    config = yaml.safe_load(subprocess.check_output(['sudo', 'cat', '/var/lib/cloud/instance/user-data.txt']))
+    if CONFIG_FILE_PATH.exists():
+        with CONFIG_FILE_PATH.open('rb') as fd:
+            config = yaml.safe_load(fd)
+    else:
+        config = yaml.safe_load(subprocess.check_output(['sudo', 'cat', '/var/lib/cloud/instance/user-data.txt']))
 
     url = config['ssh_access_granting_service_url'].rstrip('/')
     return url
 
 
 def download_public_key(url, name):
+    '''Download the SSH public key for the given user name from URL'''
+
     r = requests.get('{url}/public-keys/{name}/sshkey.pub'.format(url=url, name=name))
     r.raise_for_status()
     pubkey = fix_ssh_pubkey(name, r.text)
@@ -83,7 +95,7 @@ def grant_ssh_access(args):
                               shell_template.format(temp=fd.name, name=user_name, keys_file=keys_file)])
 
 
-def revoke_ssh_access(args):
+def revoke_ssh_access(args: list):
     user_name = args.name
 
     pwd.getpwnam(user_name)
@@ -96,13 +108,15 @@ def fail_on_missing_command():
     sys.exit(1)
 
 
-def user_name(val):
+def user_name(val: str):
+    '''Validate user name parameter'''
+
     if not USER_NAME_PATTERN.match(val):
         raise argparse.ArgumentTypeError('Invalid user name')
     return val
 
 
-def main(argv):
+def main(argv: list):
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
     cmd = subparsers.add_parser('grant-ssh-access')
