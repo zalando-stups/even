@@ -32,9 +32,9 @@ Testing with a local mock service:
 .. code-block:: bash
 
     $ # mock cloud-config YAML
-    $ sudo mkdir -p /var/lib/cloud/instance
-    $ sudo chown $USER /var/lib/cloud/instance
-    $ echo 'ssh_access_granting_service_url: "http://localhost:9000' > /var/lib/cloud/instance/user-data.txt
+    $ sudo touch /etc/ssh-access-granting-service.yaml
+    $ sudo chown $USER /etc/ssh-access-granting-service.yaml
+    $ echo 'ssh_access_granting_service_url: "http://localhost:9000"' > /etc/ssh-access-granting-service.yaml
     $ # serve your own public key via HTTP
     $ mkdir -p public-keys/testuser
     $ cp ~/.ssh/id_rsa.pub public-keys/testuser/sshkey.pub
