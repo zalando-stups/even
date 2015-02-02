@@ -44,17 +44,19 @@
         {:status 400
          :body "Invalid user name"}))
 
-(defn execute-ssh [user-name host-name command]
-      (log/info "ssh " user-name "@" host-name " " command)
-      (let [agent (ssh-agent {})]
-           (let [session (session agent host-name {:strict-host-key-checking :no})]
-           (with-connection session
-            (let [result (ssh session {:cmd command})]
-                 (println (second result)))))))
+(defn execute-ssh [host-name command config]
+      (let [user-name (:ssh-user config)]
+           (log/info "ssh " user-name "@" host-name " " command)
+           (let [agent (ssh-agent {:use-system-ssh-agent false})]
+                (add-identity agent {:private-key-path (:ssh-private-key config)})
+                (let [session (session agent host-name {:username user-name :strict-host-key-checking :no})]
+                     (with-connection session
+                       (let [result (ssh session {:cmd command})]
+                       (println (second result))))))))
 
 (defn request-access [config req]
       (log/info "Requesting access for " req)
-      (execute-ssh (:ssh-user config) (:host-name req) (str "grant-ssh-access " (:user-name req)))
+      (execute-ssh (:host-name req) (str "grant-ssh-access " (:user-name req)) config)
       )
 
 (defn- api-routes [{:keys [config]}]
