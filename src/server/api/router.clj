@@ -19,7 +19,7 @@
               :host-name String
               })
 
-(defrecord Router [config ldap])
+(defrecord Router [ldap ssh])
 
 (defn serve-public-key [name ldap]
       (if (re-matches user-name-pattern name)
@@ -29,9 +29,9 @@
         {:status 400
          :body "Invalid user name"}))
 
-(defn request-access [config req]
+(defn request-access [{:keys [host-name user-name] :as req} ssh]
       (log/info "Requesting access for " req)
-      (let [result (execute-ssh (:host-name req) (str "grant-ssh-access " (:user-name req)) config)]
+      (let [result (execute-ssh host-name (str "grant-ssh-access " user-name) ssh)]
            (if (= (:exit result) 0)
              {:status 200
               :body "Access requested"}
@@ -39,7 +39,7 @@
               :body (str "Failed: " result)})
            ))
 
-(defn- api-routes [{:keys [config ldap]}]
+(defn- api-routes [{:keys [ldap ssh]}]
        (routes/with-routes
          (swaggered
            "System"
@@ -60,7 +60,7 @@
                   :return String
                   :body [request AccessRequest]
                   ;:header-params [authorization :- String]
-                  (request-access config request)))
+                  (request-access request ssh)))
          (swaggered
            "Public Keys"
            :description "Expose SSH public keys"
@@ -85,6 +85,6 @@
           (exception-logging (api-routes router)))))
 
 
-(defn ^Router new-router [config]
-      (log/info "Configuring router with" config)
-      (map->Router {:config config}))
+(defn ^Router new-router []
+      (log/info "Configuring router")
+      (map->Router {}))

@@ -6,16 +6,18 @@
       [server.api.router :refer [new-router]]
       [server.pubkey-provider.ldap :refer [new-ldap]]
       [server.config :as config]
+      [server.ssh :refer [new-ssh]]
       ))
 
 
 (defn new-system [config]
       "Returns a new instance of the whole application"
-      (let [{:keys [ldap http]} (config/parse config [:ldap :http])]
+      (let [{:keys [ldap http ssh]} (config/parse (config/load-defaults config) [:ldap :http :ssh])]
       (component/system-map
         :http-server (using (new-http-server http) [:router])
-        :router (using (new-router config) [:ldap])
+        :router (using (new-router) [:ldap :ssh])
         :ldap (using (new-ldap ldap) [])
+        :ssh (using (new-ssh ssh) [])
         )))
 
 (defn start [system]

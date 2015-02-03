@@ -10,7 +10,7 @@
          (server {}))
        ([options]
          (assoc (http-server/new-http-server options)
-                :router (router/new-router options))))
+                :router (router/new-router))))
 
 (deftest test-http-server-restart
          (let [started (start (server))]

@@ -7,9 +7,9 @@
 
 (defrecord Ldap [config pool])
 
-(defn get-ldap-user-dn [name {:keys [ldap-base-dn]}]
+(defn get-ldap-user-dn [name {:keys [base-dn]}]
       "Build LDAP DN for a given user name"
-      (str "uid=" name "," ldap-base-dn))
+      (str "uid=" name "," base-dn))
 
 (defn ldap-config [{:keys [host bind-dn password ssl connect-timeout]}]
       {:host host
@@ -22,7 +22,7 @@
       (if pool
         pool
         (let [ldap-config (ldap-config config)]
-             (log/info "Connecting to LDAP server " ldap-config + " ..")
+             (log/info "Connecting to LDAP server " (dissoc ldap-config :password) + " ..")
              (let [conn (ldap/connect ldap-config)]
                   (assoc ldap-server :pool conn)
                   conn)

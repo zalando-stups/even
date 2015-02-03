@@ -50,6 +50,21 @@ To start a web server for the application, run:
     => (ns user)
     => (go)
 
+Building
+========
+
+.. code-block:: bash
+
+    $ lein uberjar
+    $ docker build -t ssh-access-granting-service .
+
+Running
+=======
+
+.. code-block:: bash
+
+    $ java -jar target/ssh-access-granting-service.jar
+
 ToDos
 =====
 
