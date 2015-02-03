@@ -8,7 +8,7 @@
       [environ.core :refer [env]]
       [clojure.tools.logging :as log]
       [schema.core :as s]
-      [server.ldap :refer [get-public-key]]
+      [server.pubkey-provider.ldap :refer [get-public-key]]
       [server.ssh :refer [execute-ssh]]
       ))
 

@@ -1,4 +1,4 @@
-(ns server.ldap
+(ns server.pubkey-provider.ldap
     (:require
       [clojure.tools.logging :as log]
       [com.stuartsierra.component :as component]
@@ -11,12 +11,12 @@
       "Build LDAP DN for a given user name"
       (str "uid=" name "," ldap-base-dn))
 
-(defn ldap-config [{:keys [ldap-host ldap-bind-dn ldap-password ldap-ssl ldap-connect-timeout]}]
-      {:host ldap-host
-       :bind-dn ldap-bind-dn
-       :password ldap-password
-       :ssl? (Boolean/parseBoolean ldap-ssl)
-       :connect-timeout (Integer/parseInt (or ldap-connect-timeout "10000"))})
+(defn ldap-config [{:keys [host bind-dn password ssl connect-timeout]}]
+      {:host host
+       :bind-dn bind-dn
+       :password password
+       :ssl? (Boolean/parseBoolean ssl)
+       :connect-timeout (Integer/parseInt (or connect-timeout "10000"))})
 
 (defn ldap-connect [{:keys [config pool] :as ldap-server}]
       (if pool
