@@ -2,7 +2,8 @@
     (:require
       [clojure.tools.logging :as log]
       [com.stuartsierra.component :as component]
-      [clj-ldap.client :as ldap])
+      [clj-ldap.client :as ldap]
+      [server.config :as config])
     )
 
 (defrecord Ldap [config pool])
@@ -22,7 +23,7 @@
       (if pool
         pool
         (let [ldap-config (ldap-config config)]
-             (log/info "Connecting to LDAP server " (dissoc ldap-config :password) + " ..")
+             (log/info "Connecting to LDAP server " (config/mask ldap-config) + " ..")
              (let [conn (ldap/connect ldap-config)]
                   (assoc ldap-server :pool conn)
                   conn)
@@ -34,5 +35,5 @@
            (:sshPublicKey (ldap/get conn (get-ldap-user-dn name config) [:sshPublicKey]))))
 
 (defn ^Ldap new-ldap [config]
-      (log/info "Configuring LDAP with" config)
+      (log/info "Configuring LDAP with" (config/mask config))
       (map->Ldap {:config config}))

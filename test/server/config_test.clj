@@ -8,3 +8,6 @@
 
 (deftest test-load
          (is (= {:ssh-user "granting-service"} (load-defaults {}))))
+
+(deftest test-mask
+         (is (= {:a "b" :password "MASKED"} (mask {:a "b", :password "secret"}))))

@@ -28,12 +28,15 @@
                               filenames)))
 
 (defn load-defaults [config]
-      (merge (load-config (clojure.java.io/resource "default-config.edn")) config)
-      )
+      (merge (load-config (clojure.java.io/resource "default-config.edn")) config))
+
+(defn mask [config]
+      "Mask sensitive information such as passwords"
+      (into {} (for [[k v] config] [k (if (.contains (name k) "pass") "MASKED" v)])))
 
 
 (defn parse [config namespaces]
       (let [namespaced-configs (into {} (map (juxt identity (partial namespaced config)) namespaces))]
            (doseq [[namespace namespaced-config] namespaced-configs]
-                  (log/info "Destructured" namespace "into" namespaced-config))
+                  (log/info "Destructured" namespace "into" (mask namespaced-config)))
            namespaced-configs))
