@@ -25,6 +25,7 @@
       (if (.startsWith key "-----BEGIN") (write-key-to-file key) key))
 
 (defn execute-ssh [host-name command {{:keys [user private-key]} :config}]
+      "Execute the given command on the remote host using the configured SSH user and private key"
       (log/info "ssh " user "@" host-name " " command)
       (let [agent (ssh-agent {:use-system-ssh-agent false
                               :known-hosts-path "/dev/null"})]
