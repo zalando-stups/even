@@ -50,6 +50,12 @@ To start a web server for the application, run:
     => (ns user)
     => (go)
 
+Requesting access to server "127.0.0.1" for user "jdoe":
+
+.. code-block:: bash
+
+    $ curl -XPOST -H Content-Type:application/json --data '{"user-name": "jdoe", "host-name": "127.0.0.1"}' http://localhost:8080/access-requests
+
 Building
 ========
 
