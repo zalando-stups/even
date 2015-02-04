@@ -34,9 +34,12 @@
 (defn load-defaults [config]
       (merge (load-config (clojure.java.io/resource "default-config.edn")) config))
 
+(defn- is-sensitive-key [k]
+       (or (.contains (name k) "pass") (.contains (name k) "private")))
+
 (defn mask [config]
       "Mask sensitive information such as passwords"
-      (into {} (for [[k v] config] [k (if (.contains (name k) "pass") "MASKED" v)])))
+      (into {} (for [[k v] config] [k (if (is-sensitive-key k)  "MASKED" v)])))
 
 (defn- get-kms-ciphertext-blob [s]
        "Convert config string to ByteBuffer"

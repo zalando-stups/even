@@ -10,7 +10,7 @@
          (is (= {:ssh-user "granting-service"} (load-defaults {}))))
 
 (deftest test-mask
-         (is (= {:a "b" :password "MASKED"} (mask {:a "b", :password "secret"}))))
+         (is (= {:a "b" :password "MASKED" :private-stuff "MASKED"} (mask {:a "b", :password "secret" :private-stuff "foobar"}))))
 
 (deftest test-decrypt
          (is (= {:a "a" :b "b"} (decrypt {:a "a" :b "b"}))))
