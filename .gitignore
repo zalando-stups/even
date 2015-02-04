@@ -4,3 +4,4 @@ target/
 .lein*
 profiles.clj
 .idea
+local-*
