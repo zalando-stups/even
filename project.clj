@@ -22,8 +22,11 @@
                            [org.clojars.pntblnk/clj-ldap "0.0.9"]
                            ; SSH client
                            [clj-ssh "0.5.11"]
-                           ;
+                           ; amazon aws (if upgrading, also check the joda-time version)
+                           [amazonica "0.3.12" :exclusions [joda-time commons-logging]]
+                           [joda-time "2.5"]
                            [org.clojure/data.json "0.2.5"]
+                           [org.clojure/data.codec "0.1.0"]
                            ]
             :plugins [[lein-environ "1.0.0"]
                       [lein-cloverage "1.0.2"]]

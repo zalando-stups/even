@@ -11,3 +11,6 @@
 
 (deftest test-mask
          (is (= {:a "b" :password "MASKED"} (mask {:a "b", :password "secret"}))))
+
+(deftest test-decrypt
+         (is (= {:a "a" :b "b"} (decrypt {:a "a" :b "b"}))))

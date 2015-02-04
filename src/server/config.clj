@@ -2,7 +2,11 @@
     (:require [clojure.tools.logging :as log]
       [clojure.string :refer [replace-first]]
       [clojure.edn :as edn]
+      [amazonica.aws.kms :as kms]
+      [clojure.data.codec.base64 :as b64]
       ))
+
+(def aws-kms-crypto-prefix "aws:kms:crypto:")
 
 (defn- strip [namespace k]
        (keyword (replace-first (name k) (str (name namespace) "-") "")))
@@ -33,6 +37,25 @@
 (defn mask [config]
       "Mask sensitive information such as passwords"
       (into {} (for [[k v] config] [k (if (.contains (name k) "pass") "MASKED" v)])))
+
+(defn- get-kms-ciphertext-blob [s]
+       "Convert config string to ByteBuffer"
+       (-> (clojure.string/replace-first s aws-kms-crypto-prefix "")
+           .getBytes
+           b64/decode
+           java.nio.ByteBuffer/wrap))
+
+(defn decrypt-value-with-aws-kms [value aws-region-id]
+      "Use AWS Key Management Service to decrypt the given string (must be encoded as Base64)"
+      (apply str (map char (.array (:plaintext (kms/decrypt {:endpoint aws-region-id} :ciphertext-blob (get-kms-ciphertext-blob value)))))))
+
+(defn decrypt-value [value aws-region-id]
+      "Decrypt a single value, returns original value if it's not encrypted"
+      (if (.startsWith value aws-kms-crypto-prefix) (decrypt-value-with-aws-kms value aws-region-id) value))
+
+(defn decrypt [config]
+      "Decrypt all values in a config map"
+      (into {} (for [[k v] config] [k (decrypt-value v (:aws-region-id config))])))
 
 
 (defn parse [config namespaces]

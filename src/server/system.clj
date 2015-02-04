@@ -12,7 +12,7 @@
 
 (defn new-system [config]
       "Returns a new instance of the whole application"
-      (let [{:keys [ldap http ssh]} (config/parse (config/load-defaults config) [:ldap :http :ssh])]
+      (let [{:keys [ldap http ssh]} (config/parse (config/decrypt (config/load-defaults config)) [:ldap :http :ssh])]
       (component/system-map
         :http-server (using (new-http-server http) [:router])
         :router (using (new-router) [:ldap :ssh])
