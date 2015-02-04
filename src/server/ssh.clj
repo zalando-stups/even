@@ -1,17 +1,21 @@
 (ns server.ssh
     (:require [clojure.tools.logging :as log]
       [clj-ssh.ssh :refer :all]
-      [server.config :as config]))
+      [server.config :as config])
+    (:import
+      [java.nio.file.attribute PosixFilePermissions]
+      [java.nio.file.attribute FileAttribute]
+      [java.nio.file Files]))
 
 (defrecord Ssh [config])
 
 (def owner-only
   "Java file attributes for 'owner-only' permissions"
-  (into-array java.nio.file.attribute.FileAttribute [(java.nio.file.attribute.PosixFilePermissions/asFileAttribute (java.nio.file.attribute.PosixFilePermissions/fromString "rwx------"))]))
+  (into-array FileAttribute [(PosixFilePermissions/asFileAttribute (PosixFilePermissions/fromString "rwx------"))]))
 
 (defn write-key-to-file [key]
       "Write private SSH key to a temp file, only readable by our user"
-      (let [path (.toString (.resolve (java.nio.file.Files/createTempDirectory "ssh-private-key" owner-only) "sshkey.pem"))]
+      (let [path (.toString (.resolve (Files/createTempDirectory "ssh-private-key" owner-only) "sshkey.pem"))]
            (log/info "Writing SSH private key to" path)
            (spit path key)
            path))
