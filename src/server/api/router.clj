@@ -3,20 +3,27 @@
       [compojure.api.sweet :refer :all]
       [compojure.api.middleware :refer :all]
       [compojure.api.routes :as routes]
-      [ring.adapter.jetty :as jetty]
-      [clj-ldap.client :as ldap]
-      [environ.core :refer [env]]
       [clojure.tools.logging :as log]
       [schema.core :as s]
       [server.pubkey-provider.ldap :refer [get-public-key]]
       [server.ssh :refer [execute-ssh]]
       ))
 
-(def user-name-pattern #"^[a-z][a-z0-9-]{0,31}$")
+(def user-name-pattern
+     "A valid POSIX user name (e.g. 'jdoe')"
+     #"^[a-z][a-z0-9-]{0,31}$")
+(def host-name-pattern
+     "A valid FQDN or IP address"
+     #"^[a-z][a-z0-9.-]{0,255}$")
+
+(defn matches-user-name-pattern [s] (re-matches user-name-pattern s))
+(defn matches-host-name-pattern [s] (re-matches host-name-pattern s))
+(defn non-empty [s] (not (clojure.string/blank? s)))
 
 (s/defschema AccessRequest
-             {:user-name String
-              :host-name String
+             {:user-name (s/both String (s/pred matches-user-name-pattern))
+              :host-name (s/both String (s/pred matches-host-name-pattern))
+              :reason (s/both String (s/pred non-empty))
               })
 
 (defrecord Router [ldap ssh])

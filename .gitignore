@@ -5,3 +5,4 @@ target/
 profiles.clj
 .idea
 local-*
+.nrepl*
