@@ -7,6 +7,7 @@
       [schema.core :as s]
       [server.pubkey-provider.ldap :refer [get-public-key]]
       [server.ssh :refer [execute-ssh]]
+      [clojure.data.codec.base64 :as b64]
       ))
 
 (def user-name-pattern
@@ -28,6 +29,16 @@
 
 (defrecord Router [ldap ssh])
 
+
+(defmethod compojure.api.meta/restructure-param :auth
+           [_ authorization {:keys [parameters lets body middlewares] :as acc}]
+           "Parse Authorization"
+           (-> acc
+               (update-in [:lets] into [{{authorization "authorization"} :headers} '+compojure-api-request+])
+               (assoc :body `((if (string? ~authorization)
+                                (do ~@body)
+                                (ring.util.http-response/unauthorized "Auth required"))))))
+
 (defn serve-public-key [name ldap]
       (if (re-matches user-name-pattern name)
         (or (get-public-key name ldap)
@@ -36,15 +47,22 @@
         {:status 400
          :body "Invalid user name"}))
 
-(defn request-access [{:keys [host-name user-name] :as req} ssh]
+(defn request-access [auth {:keys [host-name user-name] :as req} ssh]
       (log/info "Requesting access for " req)
       (let [result (execute-ssh host-name (str "grant-ssh-access " user-name) ssh)]
            (if (= (:exit result) 0)
              {:status 200
-              :body "Access requested"}
+              :body "Access granted"}
              {:status 400
               :body (str "Failed: " result)})
            ))
+
+(defn parse-authorization [authorization]
+      "Parse HTTP Basic Authorization header"
+      (clojure.string/split (-> (clojure.string/replace-first authorization "Basic " "")
+                                .getBytes
+                                b64/decode
+                                String.) #":" 2))
 
 (defn- api-routes [{:keys [ldap ssh]}]
        (routes/with-routes
@@ -67,7 +85,8 @@
                   :return String
                   :body [request AccessRequest]
                   ;:header-params [authorization :- String]
-                  (request-access request ssh)))
+                  :auth authorization
+                  (request-access (parse-authorization authorization) request ssh)))
          (swaggered
            "Public Keys"
            :description "Expose SSH public keys"

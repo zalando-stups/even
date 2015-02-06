@@ -15,3 +15,6 @@
               {:user-name "a" :host-name "b" :reason "a"}
               {:user-name "my-user" :host-name "some.host" :reason "test"}
               ))
+
+(deftest test-parse-authorization
+         (is (= ["a" "b"] (parse-authorization "Basic YTpi"))))
