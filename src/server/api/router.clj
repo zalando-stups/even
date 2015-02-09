@@ -49,12 +49,11 @@
 (defn request-access [auth {:keys [host-name user-name] :as req} ssh ldap]
   (log/info "Requesting access for " req)
   (if (ldap-auth? auth ldap)
-    (let [result (execute-ssh host-name (str "grant-ssh-access " user-name) ssh)]
-      (if (= (:exit result) 0)
-        (http/ok "Access granted")
-        (http/bad-request (str "Failed: " result))
-        )
-      (http/forbidden "Login failed"))))
+      (let [result (execute-ssh host-name (str "grant-ssh-access " user-name) ssh)]
+        (if (= (:exit result) 0)
+            (http/ok "Access granted")
+            (http/bad-request (str "Failed: " result))))
+      (http/forbidden "Login failed")))
 
 (defn parse-authorization [authorization]
   "Parse HTTP Basic Authorization header"
