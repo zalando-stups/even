@@ -59,10 +59,12 @@
 
 (defn parse-authorization [authorization]
       "Parse HTTP Basic Authorization header"
-      (clojure.string/split (-> (clojure.string/replace-first authorization "Basic " "")
-                                .getBytes
-                                b64/decode
-                                String.) #":" 2))
+      (-> authorization
+          (clojure.string/replace-first "Basic " "")
+          .getBytes
+          b64/decode
+          String.
+          (clojure.string/split #":" 2)))
 
 (defn- api-routes [{:keys [ldap ssh]}]
        (routes/with-routes

@@ -43,7 +43,8 @@
 
 (defn- get-kms-ciphertext-blob [s]
        "Convert config string to ByteBuffer"
-       (-> (clojure.string/replace-first s aws-kms-crypto-prefix "")
+       (-> s
+           (clojure.string/replace-first aws-kms-crypto-prefix "")
            .getBytes
            b64/decode
            java.nio.ByteBuffer/wrap))
