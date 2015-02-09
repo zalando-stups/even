@@ -14,6 +14,7 @@ import requests
 import shlex
 import subprocess
 import sys
+import syslog
 import tempfile
 import yaml
 
@@ -177,6 +178,8 @@ def main(argv: list):
     if not hasattr(args, 'func'):
         fail_on_missing_command()
 
+    syslog.openlog(ident=os.path.basename(__file__), logoption=syslog.LOG_PID, facility=syslog.LOG_AUTH)
+    syslog.syslog(' '.join(argv))
     args.func(args)
 
 
