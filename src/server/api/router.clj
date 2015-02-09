@@ -11,20 +11,20 @@
     [ring.util.http-response :as http]
     ))
 
-(def user-name-pattern
+(def username-pattern
   "A valid POSIX user name (e.g. 'jdoe')"
   #"^[a-z][a-z0-9-]{0,31}$")
-(def host-name-pattern
+(def hostname-pattern
   "A valid FQDN or IP address"
   #"^[a-z0-9.-]{0,255}$")
 
-(defn matches-user-name-pattern [s] (re-matches user-name-pattern s))
-(defn matches-host-name-pattern [s] (re-matches host-name-pattern s))
+(defn matches-username-pattern [s] (re-matches username-pattern s))
+(defn matches-hostname-pattern [s] (re-matches hostname-pattern s))
 (defn non-empty [s] (not (clojure.string/blank? s)))
 
 (s/defschema AccessRequest
-             {:user-name (s/both String (s/pred matches-user-name-pattern))
-              :host-name (s/both String (s/pred matches-host-name-pattern))
+             {:username (s/both String (s/pred matches-username-pattern))
+              :hostname (s/both String (s/pred matches-hostname-pattern))
               :reason (s/both String (s/pred non-empty))
               })
 
@@ -41,15 +41,15 @@
                        (http/unauthorized "Auth required"))))))
 
 (defn serve-public-key [name ldap]
-  (if (re-matches user-name-pattern name)
+  (if (re-matches username-pattern name)
     (or (get-public-key name ldap)
         (http/not-found "User not found"))
     (http/bad-request "Invalid user name")))
 
-(defn request-access [auth {:keys [host-name user-name] :as req} ssh ldap]
+(defn request-access [auth {:keys [hostname username] :as req} ssh ldap]
   (log/info "Requesting access for " req)
   (if (ldap-auth? auth ldap)
-      (let [result (execute-ssh host-name (str "grant-ssh-access " user-name) ssh)]
+      (let [result (execute-ssh hostname (str "grant-ssh-access " username) ssh)]
         (if (= (:exit result) 0)
             (http/ok "Access granted")
             (http/bad-request (str "Failed: " result))))

@@ -54,7 +54,7 @@ Requesting access to server "127.0.0.1" for user "jdoe":
 
 .. code-block:: bash
 
-    $ curl -XPOST -H Content-Type:application/json --data '{"user-name": "jdoe", "host-name": "127.0.0.1", "reason": "test"}' http://localhost:8080/access-requests
+    $ curl -XPOST -H Content-Type:application/json --data '{"username": "jdoe", "hostname": "127.0.0.1", "reason": "test"}' http://localhost:8080/access-requests
 
 Building
 ========

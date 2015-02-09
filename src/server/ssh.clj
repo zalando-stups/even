@@ -24,13 +24,13 @@
       "Return path to the private key written to disk if key is the actual key (PEM encoded)"
       (if (.startsWith key "-----BEGIN") (write-key-to-file key) key))
 
-(defn execute-ssh [host-name command {{:keys [user private-key]} :config}]
+(defn execute-ssh [hostname command {{:keys [user private-key]} :config}]
       "Execute the given command on the remote host using the configured SSH user and private key"
-      (log/info "ssh " user "@" host-name " " command)
+      (log/info "ssh " user "@" hostname " " command)
       (let [agent (ssh-agent {:use-system-ssh-agent false
                               :known-hosts-path "/dev/null"})]
            (add-identity agent {:private-key-path (get-private-key-path private-key)})
-           (let [session (session agent host-name {:username user
+           (let [session (session agent hostname {:username user
                                                    :strict-host-key-checking :no})]
                 (with-connection session
                                  (let [result (ssh session {:cmd command})]
