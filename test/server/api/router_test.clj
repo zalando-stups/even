@@ -14,7 +14,8 @@
          (are [req] (= req (s/validate AccessRequest req))
               {:user-name "a" :host-name "b" :reason "a"}
               {:user-name "my-user" :host-name "some.host" :reason "test"}
+              {:user-name "my-user" :host-name "1.2.3.4" :reason "test"}
               ))
 
 (deftest test-parse-authorization
-         (is (= ["a" "b"] (parse-authorization "Basic YTpi"))))
+         (is (= {:username "a" :password "b"} (parse-authorization "Basic YTpi"))))
