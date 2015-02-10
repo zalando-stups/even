@@ -27,9 +27,11 @@
                            [joda-time "2.5"]
                            [org.clojure/data.json "0.2.5"]
                            [org.clojure/data.codec "0.1.0"]
-                           ]
+                           [com.brweber2/clj-dns "0.0.2"]
+                           [commons-net/commons-net "3.3"]]
             :plugins [[lein-environ "1.0.0"]
-                      [lein-cloverage "1.0.2"]]
+                      [lein-cloverage "1.0.2"]
+                      [lein-kibit "0.0.8"]]
 
             :aliases {"cloverage" ["with-profile" "test" "cloverage"]}
 

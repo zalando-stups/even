@@ -5,11 +5,13 @@
     [compojure.api.routes :as routes]
     [clojure.tools.logging :as log]
     [schema.core :as s]
-    [server.pubkey-provider.ldap :refer [get-public-key ldap-auth?]]
+    [server.pubkey-provider.ldap :refer [get-public-key ldap-auth? get-networks]]
     [server.ssh :refer [execute-ssh]]
     [clojure.data.codec.base64 :as b64]
     [ring.util.http-response :as http]
-    ))
+    [clj-dns.core :as dns]
+    [server.net :refer [network-matches?]])
+  (:import [org.apache.commons.net.util SubnetUtils]))
 
 (def username-pattern
   "A valid POSIX user name (e.g. 'jdoe')"
@@ -52,11 +54,16 @@
 (defn request-access [auth {:keys [hostname username reason] :as req} ssh ldap]
   (log/info "Requesting access for " req)
   (if (ldap-auth? auth ldap)
-      (let [result (execute-ssh hostname (str "grant-ssh-access " username) ssh)]
-        (if (= (:exit result) 0)
-            (http/ok "Access granted")
-            (http/bad-request (str "Failed: " result))))
-      (http/forbidden "Login failed")))
+    (let [ip (dns/to-inet-address hostname)
+          networks (get-networks (:username auth) ldap)
+          matching-networks (filter #(network-matches? % ip) networks)]
+      (if (empty? matching-networks)
+        (http/forbidden (str "Forbidden. Host " ip " is not in one of the allowed networks: " (print-str networks)))
+        (let [result (execute-ssh hostname (str "grant-ssh-access " username) ssh)]
+          (if (zero? (:exit result))
+            (http/ok (str "Access to host " ip " for user " username " was granted."))
+            (http/bad-request (str "Failed: " result))))))
+    (http/forbidden "Authentication failed")))
 
 (defn parse-authorization [authorization]
   "Parse HTTP Basic Authorization header"
@@ -81,23 +88,23 @@
         ; TODO perform a database connection
         (http/ok "OK")))
 
-  (swaggered
-    "Access Requests"
-    :description "Manage access requests"
-    (POST* "/access-requests" []
-           :summary "Request SSH access to a single host"
-           :return String
-           :body [request AccessRequest]
-           ;:header-params [authorization :- String]
-           :auth authorization
-           (let [auth (parse-authorization authorization)]
-                (request-access auth (ensure-username auth request) ssh ldap))))
-  (swaggered
-    "Public Keys"
-    :description "Expose SSH public keys"
-    (GET* "/public-keys/:name/sshkey.pub" [name]
-          :summary "Download the user's SSH public key"
-          (serve-public-key name ldap)))))
+    (swaggered
+      "Access Requests"
+      :description "Manage access requests"
+      (POST* "/access-requests" []
+             :summary "Request SSH access to a single host"
+             :return String
+             :body [request AccessRequest]
+             ;:header-params [authorization :- String]
+             :auth authorization
+             (let [auth (parse-authorization authorization)]
+               (request-access auth (ensure-username auth request) ssh ldap))))
+    (swaggered
+      "Public Keys"
+      :description "Expose SSH public keys"
+      (GET* "/public-keys/:name/sshkey.pub" [name]
+            :summary "Download the user's SSH public key"
+            (serve-public-key name ldap)))))
 
 
 (defn- exception-logging [handler]

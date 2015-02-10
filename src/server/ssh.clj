@@ -15,7 +15,7 @@
 
 (defn write-key-to-file [key]
       "Write private SSH key to a temp file, only readable by our user"
-      (let [path (.toString (.resolve (Files/createTempDirectory "ssh-private-key" owner-only) "sshkey.pem"))]
+      (let [path (str (.resolve (Files/createTempDirectory "ssh-private-key" owner-only) "sshkey.pem"))]
            (log/info "Writing SSH private key to" path)
            (spit path key)
            path))

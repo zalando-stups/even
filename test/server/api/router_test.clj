@@ -1,7 +1,8 @@
 (ns server.api.router-test
     (:require [clojure.test :refer :all]
               [server.api.router :refer :all]
-              [schema.core :as s]))
+              [schema.core :as s]
+             ))
 
 (deftest test-access-request-validation-fails
          (are [req] (thrown? Exception (s/validate AccessRequest req))
@@ -23,3 +24,4 @@
 
 (deftest test-ensure-username
   (is (= {:username "a" :blub "b"} (ensure-username {:username "a"} {:blub "b"}))))
+

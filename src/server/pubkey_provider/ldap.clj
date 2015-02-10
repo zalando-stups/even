@@ -3,7 +3,8 @@
     [clojure.tools.logging :as log]
     [com.stuartsierra.component :as component]
     [clj-ldap.client :as ldap]
-    [server.config :as config])
+    [server.config :as config]
+    [clojure.set :refer [rename-keys]])
   )
 
 (defrecord Ldap [config pool])
@@ -40,7 +41,12 @@
 
 (defn get-groups [name {:keys [config] :as ldap-server}]
   (let [conn (ldap-connect ldap-server)]
-    (ldap/get conn (get-ldap-user-dn name config) [:member-of])))
+    (:memberOf (ldap/get conn (get-ldap-user-dn name config) [:memberOf]))))
+
+(defn get-networks [name ldap-server]
+  (let [conn (ldap-connect ldap-server)]
+    (rename-keys (filter :ipHostNumber (map #(ldap/get conn % [:ipHostNumber])
+                             (get-groups name ldap-server))) {:ipHostNumber :cidr :dn :name})))
 
 (defn ^Ldap new-ldap [config]
   (log/info "Configuring LDAP with" (config/mask config))
