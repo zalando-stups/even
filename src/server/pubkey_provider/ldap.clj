@@ -45,8 +45,9 @@
 
 (defn get-networks [name ldap-server]
   (let [conn (ldap-connect ldap-server)]
-    (rename-keys (filter :ipHostNumber (map #(ldap/get conn % [:ipHostNumber])
-                             (get-groups name ldap-server))) {:ipHostNumber :cidr :dn :name})))
+    (map #(rename-keys % {:ipHostNumber :cidr
+                          :dn :name}) (filter :ipHostNumber (map #(ldap/get conn % [:ipHostNumber])
+                             (get-groups name ldap-server))))))
 
 (defn ^Ldap new-ldap [config]
   (log/info "Configuring LDAP with" (config/mask config))
