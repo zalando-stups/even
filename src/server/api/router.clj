@@ -23,7 +23,7 @@
 (defn non-empty [s] (not (clojure.string/blank? s)))
 
 (s/defschema AccessRequest
-             {:username (s/both String (s/pred matches-username-pattern))
+             {(s/optional-key :username) (s/both String (s/pred matches-username-pattern))
               :hostname (s/both String (s/pred matches-hostname-pattern))
               :reason (s/both String (s/pred non-empty))
               })
@@ -46,7 +46,10 @@
         (http/not-found "User not found"))
     (http/bad-request "Invalid user name")))
 
-(defn request-access [auth {:keys [hostname username] :as req} ssh ldap]
+(defn ensure-username [auth {:keys [username] :as req}]
+  (assoc req :username (or username (:username auth))))
+
+(defn request-access [auth {:keys [hostname username reason] :as req} ssh ldap]
   (log/info "Requesting access for " req)
   (if (ldap-auth? auth ldap)
       (let [result (execute-ssh hostname (str "grant-ssh-access " username) ssh)]
@@ -87,7 +90,8 @@
            :body [request AccessRequest]
            ;:header-params [authorization :- String]
            :auth authorization
-           (request-access (parse-authorization authorization) request ssh ldap)))
+           (let [auth (parse-authorization authorization)]
+                (request-access auth (ensure-username auth request) ssh ldap))))
   (swaggered
     "Public Keys"
     :description "Expose SSH public keys"

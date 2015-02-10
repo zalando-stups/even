@@ -38,6 +38,10 @@
   (let [conn (ldap-connect ldap-server)]
     (:sshPublicKey (ldap/get conn (get-ldap-user-dn name config) [:sshPublicKey]))))
 
+(defn get-groups [name {:keys [config] :as ldap-server}]
+  (let [conn (ldap-connect ldap-server)]
+    (ldap/get conn (get-ldap-user-dn name config) [:member-of])))
+
 (defn ^Ldap new-ldap [config]
   (log/info "Configuring LDAP with" (config/mask config))
   (map->Ldap {:config config}))

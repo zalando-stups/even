@@ -60,7 +60,7 @@ Requesting access to server "127.0.0.1" for user "jdoe":
 
 .. code-block:: bash
 
-    $ curl -XPOST -H Content-Type:application/json --data '{"username": "jdoe", "hostname": "127.0.0.1", "reason": "test"}' http://localhost:8080/access-requests
+    $ curl -u jdoe -XPOST -H Content-Type:application/json --data '{"hostname": "127.0.0.1", "reason": "test"}' http://localhost:8080/access-requests
 
 Building
 ========
@@ -95,6 +95,7 @@ This is purely experimental, but at least the following would be needed:
 
 * Implement authorization rules (who can access which host)
 * Integrate with Kerberos infrastructure
+* Implement SSH key rotation
 * Review security concept
 * Harden everything
 
