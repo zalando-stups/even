@@ -24,6 +24,9 @@ Users can request temporary SSH access to servers by calling the "SSH Access Gra
 * The forced command script downloads the user's public SSH key from the service
 * The forced command script configures the ``/home/<user>/.ssh/authorized_keys`` file accordingly
 
+.. image:: https://raw.githubusercontent.com/zalando/ssh-access-granting-service/docs/_static/grant-ssh-access-flow.svg
+   :alt: Grant SSH access flow
+
 
 Testing
 =======
