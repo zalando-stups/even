@@ -18,10 +18,11 @@ Idea
 
 Users can request temporary SSH access to servers by calling the "SSH Access Granting Service" which puts their public SSH key in place.
 
-* The user needs to authenticate against the service
+* The user needs to authenticate against the service (currently checked via LDAP bind)
 * The user requests temporary SSH access for a certain host (``POST /access-requests``)
+* The service checks whether the user is allowed to gain access to the specified host by checking if the host's IP is included in one of the IP networks configured on the user's LDAP roles (using the ``ipHostNumber`` LDAP attribute)
 * The service instructs the host to grant access via a SSH forced command script
-* The forced command script downloads the user's public SSH key from the service
+* The forced command script downloads the user's public SSH key from the service (the public SSH key is read from LDAP)
 * The forced command script configures the ``/home/<user>/.ssh/authorized_keys`` file accordingly
 
 .. image:: https://raw.githubusercontent.com/zalando/ssh-access-granting-service/master/docs/_static/grant-ssh-access-flow.png
@@ -96,7 +97,6 @@ ToDos
 
 This is purely experimental, but at least the following would be needed:
 
-* Implement authorization rules (who can access which host)
 * Integrate with Kerberos infrastructure
 * Implement SSH key rotation
 * Review security concept
