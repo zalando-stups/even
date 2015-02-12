@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+'''
+Helper script to request access to a certain host.
+'''
 
 import click
 import json
@@ -17,9 +20,10 @@ CONFIG_FILE_PATH = os.path.join(CONFIG_DIR_PATH, 'ssh-request.yaml')
 @click.command()
 @click.argument('host', metavar='user@host')
 @click.option('-u', '--user', help='Username to use for authentication', envvar='USER')
+@click.option('-p', '--password', help='Password to use for authentication')
 @click.option('-r', '--reason', help='Reason for this access request', prompt='Please enter a reason')
 @click.option('--url', help='SSH Access Granting Service URL', envvar='SSH_ACCESS_GRANTING_SERVICE_URL')
-def main(host, user, reason, url):
+def main(host, user, password, reason, url):
     # sdf
     parts = host.split('@')
     if len(parts) > 1:
@@ -41,7 +45,7 @@ def main(host, user, reason, url):
             config = yaml.safe_load(fd)
         url = config['url']
 
-    password = keyring.get_password(KEYRING_KEY, user)
+    password = password or keyring.get_password(KEYRING_KEY, user)
 
     if not password:
         password = click.prompt('Password', hide_input=True)
