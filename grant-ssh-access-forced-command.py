@@ -112,7 +112,7 @@ def generate_authorized_keys(user_name: str, keys_file: Path, pubkey: str, force
     ssh_dir = keys_file.parent
     subprocess.check_call(['sudo', 'mkdir', '-p', str(ssh_dir)])
     subprocess.check_call(['sudo', 'chown', user_name, str(ssh_dir)])
-    subprocess.check_call(['sudo', 'chmod', '700', str(ssh_dir)])
+    subprocess.check_call(['sudo', 'chmod', '0700', str(ssh_dir)])
 
     with tempfile.NamedTemporaryFile(suffix='{name}-sshkey.pub'.format(name=user_name)) as fd:
         fd.write(add_our_mark(add_forced_command(pubkey, forced_command)).encode('utf-8'))
@@ -139,10 +139,14 @@ def grant_ssh_access(args):
         pwd.getpwnam(user_name)
     except:
         config = get_config()
-        subprocess.check_call(['sudo', 'useradd', '--user-group',
+        subprocess.check_call(['sudo', 'useradd',
+                               '--user-group',
                                '--groups', ','.join(config.get('user_groups', ['adm'])),
+                               '--shell', DEFAULT_SHELL,
+                               '--create-home',
                                # colon is not allowed in the comment field..
-                               '--comment', USER_COMMENT.format(date=date()).replace(':', '-'), user_name])
+                               '--comment', USER_COMMENT.format(date=date()).replace(':', '-'),
+                               user_name])
 
     keys_file = get_keys_file_path(user_name)
 
