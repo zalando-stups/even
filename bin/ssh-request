@@ -24,7 +24,7 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.argument('reason')
 @click.argument('reason_cont', nargs=-1, metavar='[..]')
 @click.option('-u', '--user', help='Username to use for authentication', envvar='USER')
-@click.option('-p', '--password', help='Password to use for authentication')
+@click.option('-p', '--password', help='Password to use for authentication', envvar='SSH_REQUEST_PASSWORD')
 @click.option('--url', help='SSH Access Granting Service URL', envvar='SSH_ACCESS_GRANTING_SERVICE_URL')
 def main(host, user, password, reason, reason_cont, url):
     # sdf
