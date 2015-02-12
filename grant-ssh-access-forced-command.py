@@ -131,7 +131,8 @@ def grant_ssh_access(args):
         config = get_config()
         subprocess.check_call(['sudo', 'useradd', '--user-group',
                                '--groups', ','.join(config.get('user_groups', ['adm'])),
-                               '--comment', USER_COMMENT.format(date=date()), user_name])
+                               # colon is not allowed in the comment field..
+                               '--comment', USER_COMMENT.format(date=date()).replace(':', '-'), user_name])
 
     keys_file = get_keys_file_path(user_name)
 
