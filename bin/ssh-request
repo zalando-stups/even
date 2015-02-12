@@ -16,14 +16,17 @@ KEYRING_KEY = 'ssh-request'
 CONFIG_DIR_PATH = click.get_app_dir('ssh-request')
 CONFIG_FILE_PATH = os.path.join(CONFIG_DIR_PATH, 'ssh-request.yaml')
 
+CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 
-@click.command()
-@click.argument('host', metavar='user@host')
+
+@click.command(context_settings=CONTEXT_SETTINGS)
+@click.argument('host', metavar='[USER]@HOST')
+@click.argument('reason')
+@click.argument('reason_cont', nargs=-1, metavar='[..]')
 @click.option('-u', '--user', help='Username to use for authentication', envvar='USER')
 @click.option('-p', '--password', help='Password to use for authentication')
-@click.option('-r', '--reason', help='Reason for this access request', prompt='Please enter a reason')
 @click.option('--url', help='SSH Access Granting Service URL', envvar='SSH_ACCESS_GRANTING_SERVICE_URL')
-def main(host, user, password, reason, url):
+def main(host, user, password, reason, reason_cont, url):
     # sdf
     parts = host.split('@')
     if len(parts) > 1:
@@ -32,6 +35,8 @@ def main(host, user, password, reason, url):
         username = user
 
     hostname = parts[-1]
+
+    reason = ' '.join([reason] + list(reason_cont)).strip()
 
     if not url:
         if not os.path.exists(CONFIG_FILE_PATH):
@@ -58,7 +63,8 @@ def main(host, user, password, reason, url):
     if r.status_code == 200:
         click.secho(r.text, fg='green', bold=True)
     else:
-        click.secho('Server returned status {code}: {text}'.format(code=r.status_code, text=r.text), fg='red', bold=True)
+        click.secho('Server returned status {code}: {text}'.format(code=r.status_code, text=r.text),
+                    fg='red', bold=True)
 
     keyring.set_password(KEYRING_KEY, user, password)
 
