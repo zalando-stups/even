@@ -94,7 +94,10 @@ def add_our_mark(pubkey):
 
 
 def add_forced_command(pubkey, forced_command):
-    return 'command="{}" {}'.format(forced_command, pubkey)
+    if forced_command:
+        return 'command="{}" {}'.format(forced_command, pubkey)
+    else:
+        return pubkey
 
 
 def get_keys_file_path(user_name: str) -> Path:
@@ -105,7 +108,7 @@ def get_keys_file_path(user_name: str) -> Path:
     return keys_file
 
 
-def generate_authorized_keys(user_name: str, keys_file: Path, pubkey: str, forced_command: str):
+def generate_authorized_keys(user_name: str, keys_file: Path, pubkey: str, forced_command: str=None):
     ssh_dir = keys_file.parent
     subprocess.check_call(['sudo', 'mkdir', '-p', str(ssh_dir)])
     subprocess.check_call(['sudo', 'chown', user_name, str(ssh_dir)])
@@ -117,6 +120,13 @@ def generate_authorized_keys(user_name: str, keys_file: Path, pubkey: str, force
         shell_template = 'cat {temp} > {keys_file} && chown {name} {keys_file} && chmod 600 {keys_file}'
         subprocess.check_call(['sudo', 'sh', '-c',
                               shell_template.format(temp=fd.name, name=user_name, keys_file=keys_file)])
+
+
+def write_welcome_message(home_dir: Path):
+    '''Write SSH welcome banner to ~/.profile'''
+    profile_path = home_dir / '.profile'
+    command = 'echo "echo {}" > {}'.format(shlex.quote(WELCOME_MESSAGE.format(date=date())), profile_path)
+    subprocess.check_call(['sudo', 'sh', '-c', command])
 
 
 def grant_ssh_access(args):
@@ -136,8 +146,8 @@ def grant_ssh_access(args):
 
     keys_file = get_keys_file_path(user_name)
 
-    forced_command = 'echo {}; {}'.format(shlex.quote(WELCOME_MESSAGE.format(date=date())), DEFAULT_SHELL)
-    generate_authorized_keys(user_name, keys_file, pubkey, forced_command)
+    generate_authorized_keys(user_name, keys_file, pubkey)
+    write_welcome_message(keys_file.parent.parent)
 
 
 def is_generated_by_us(keys_file):
