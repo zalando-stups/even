@@ -3,6 +3,7 @@
   (:import [org.apache.commons.net.util SubnetUtils]))
 
 (defn is-in-range? [net ip]
+  "Check whether the given IP is in the given network (CIDR notation)"
   (-> net
       SubnetUtils.
       .getInfo

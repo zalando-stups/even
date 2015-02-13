@@ -85,7 +85,6 @@
         "/health" []
         :summary "Performs a health check"
         (log/info "Checking health")
-        ; TODO perform a database connection
         (http/ok "OK")))
 
     (swaggered
@@ -95,7 +94,6 @@
              :summary "Request SSH access to a single host"
              :return String
              :body [request AccessRequest]
-             ;:header-params [authorization :- String]
              :auth authorization
              (let [auth (parse-authorization authorization)]
                (request-access auth (ensure-username auth request) ssh ldap))))
