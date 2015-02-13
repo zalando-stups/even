@@ -34,7 +34,7 @@
 
 
 (defmethod compojure.api.meta/restructure-param :auth
-  [_ authorization {:keys [parameters lets body middlewares] :as acc}]
+  [_ authorization {:keys [body] :as acc}]
   "Parse Authorization"
   (-> acc
       (update-in [:lets] into [{{authorization "authorization"} :headers} '+compojure-api-request+])

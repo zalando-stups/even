@@ -59,8 +59,6 @@
        (map char)
        (apply str)))
 
-;(apply str (map char (.array (:plaintext (kms/decrypt {:endpoint aws-region-id} :ciphertext-blob (get-kms-ciphertext-blob value)))))))
-
 (defn decrypt-value [value aws-region-id]
   "Decrypt a single value, returns original value if it's not encrypted"
   (if (.startsWith value aws-kms-crypto-prefix) (decrypt-value-with-aws-kms value aws-region-id) value))
