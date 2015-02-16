@@ -83,7 +83,7 @@ Running the previously built Docker image and passing configuration via environm
 
 .. code-block:: bash
 
-    $ docker run -p 8080:8080 -e AWS_REGION_ID=eu-west-1 -e LDAP_HOST=ldap.example.org -e LDAP_SSL=true -e LDAP_BASE_DN=ou=users,dc=example,dc=org -e LDAP_BIND_DN=uid=ssh-key-reader,ou=users,dc=example,dc=org -e LDAP_PASSWORD="$LDAP_PASSWORD" -e SSH_PRIVATE_KEY="$SSH_PRIVATE_KEY" ssh-access-granting-service
+    $ docker run -p 8080:8080 -e AWS_REGION_ID=eu-west-1 -e LDAP_HOST=ldap.example.org -e LDAP_SSL=true -e LDAP_BASE_DN=ou=users,dc=example,dc=org -e LDAP_GROUP_BASE_DN=ou=groups,dc=example,dc=org -e LDAP_BIND_DN=uid=ssh-key-reader,ou=users,dc=example,dc=org -e LDAP_PASSWORD="$LDAP_PASSWORD" -e SSH_PRIVATE_KEY="$SSH_PRIVATE_KEY" ssh-access-granting-service
 
 All configuration values can be passed encrypted when running on AWS:
 
@@ -91,6 +91,33 @@ All configuration values can be passed encrypted when running on AWS:
 
     $ aws kms encrypt --key-id 123 --plaintext "secret" # encrypt with KMS
     $ export LDAP_PASSWORD="aws:kms:crypto:<KMS-CIPHERTEXT-BLOB>"
+
+Configuration
+=============
+
+The following configuration parameters can/should be passed via environment variables:
+
+``AWS_REGION_ID``
+    Optional AWS region ID to use for KMS decryption (e.g. "eu-west-1").
+``LDAP_BASE_DN``
+    DN of the user base.
+``LDAP_BIND_DN``
+    DN of the user to bind with.
+``LDAP_CONNECT_TIMEOUT``
+    LDAP connection timeout in milliseconds (default: 10s).
+``LDAP_GROUP_BASE_DN``
+    DN of the group base.
+``LDAP_HOST``
+    The LDAP server hostname to connect to.
+``LDAP_PASSWORD``
+    The user's bind password (can be encrypted with KMS).
+``LDAP_SSL``
+    Boolean flag (``true`` or ``false``) whether to use TLS for the LDAP connection.
+``SSH_PRIVATE_KEY``
+    The SSH private key (can be encrypted with KMS).
+``SSH_USER``
+    The SSH username on remote servers (default: "granting-service").
+
 
 ToDos
 =====

@@ -39,17 +39,17 @@
   (let [conn (ldap-connect ldap-server)]
     (:sshPublicKey (ldap/get conn (get-ldap-user-dn name config) [:sshPublicKey]))))
 
-(defn get-groups [name {:keys [config] :as ldap-server}]
-  "Get DNs of all LDAP groups the user is member in"
-  (let [conn (ldap-connect ldap-server)]
-    (:memberOf (ldap/get conn (get-ldap-user-dn name config) [:memberOf]))))
+(defn get-search-filter [name config]
+  (str "&(ipHostNumber=*)(member=" (get-ldap-user-dn name config) ")"))
 
-(defn get-networks [name ldap-server]
+(defn get-networks [name {:keys [config] :as ldap-server}]
   "Get all networks the user has access to"
   (let [conn (ldap-connect ldap-server)]
     (map #(rename-keys % {:ipHostNumber :cidr
-                          :dn :name}) (filter :ipHostNumber (map #(ldap/get conn % [:ipHostNumber])
-                             (get-groups name ldap-server))))))
+                          :dn :name})
+    (ldap/search conn (:group-base-dn config) {:scope :sub
+                                               :filter (get-search-filter name config)
+                                               :attributes [:ipHostNumber]}))))
 
 (defn ^Ldap new-ldap [config]
   (log/info "Configuring LDAP with" (config/mask config))

@@ -18,6 +18,6 @@
 
 (deftest test-get-networks
   (with-redefs [ldap/connect (constantly "conn")
-                get-groups (constantly ["cn=group1,dc=example,dc=org", "cn=group2,dc=example,dc=org"])
-                ldap/get (constantly {:ipHostNumber ["10.0.0.0/8"]})]
-    (is (= [{:cidr ["10.0.0.0/8"]} {:cidr ["10.0.0.0/8"]}] (get-networks "jdoe" {:config {}})))))
+                ldap/search (constantly [{:ipHostNumber ["10.0.0.0/8"]}
+                                         {:ipHostNumber ["172.1.0.0/16"]}])]
+    (is (= [{:cidr ["10.0.0.0/8"]} {:cidr ["172.1.0.0/16"]}] (get-networks "jdoe" {:config {}})))))
