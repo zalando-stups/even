@@ -26,7 +26,8 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.option('-u', '--user', help='Username to use for authentication', envvar='USER')
 @click.option('-p', '--password', help='Password to use for authentication', envvar='SSH_REQUEST_PASSWORD')
 @click.option('--url', help='SSH Access Granting Service URL', envvar='SSH_ACCESS_GRANTING_SERVICE_URL')
-def main(host, user, password, reason, reason_cont, url):
+@click.option('--insecure', help='Do not verify SSL certificate', is_flag=True, default=False)
+def main(host, user, password, reason, reason_cont, url, insecure):
     # sdf
     parts = host.split('@')
     if len(parts) > 1:
@@ -59,7 +60,9 @@ def main(host, user, password, reason, reason_cont, url):
         url = url.rstrip('/') + '/access-requests'
     data = {'username': username, 'hostname': hostname, 'reason': reason}
     click.secho('Requesting access to host {hostname} for {username}..'.format(**vars()), bold=True)
-    r = requests.post(url, headers={'Content-Type': 'application/json'}, data=json.dumps(data), auth=(user, password))
+    r = requests.post(url, headers={'Content-Type': 'application/json'},
+                      data=json.dumps(data), auth=(user, password),
+                      verify=(not insecure))
     if r.status_code == 200:
         click.secho(r.text, fg='green', bold=True)
     else:
