@@ -22,6 +22,7 @@ from pathlib import Path
 
 
 USER_NAME_PATTERN = re.compile('^[a-z][a-z0-9-]{0,31}$')
+HOST_NAME_PATTERN = re.compile('^[a-z0-9.-]{0,255}$')
 
 CONFIG_FILE_PATH = Path('/etc/ssh-access-granting-service.yaml')
 
@@ -153,6 +154,15 @@ def grant_ssh_access(args):
     generate_authorized_keys(user_name, keys_file, pubkey)
     write_welcome_message(keys_file.parent.parent)
 
+    if args.remote_host:
+        grant_ssh_access_on_remote_host(user_name, args.remote_host)
+
+
+def grant_ssh_access_on_remote_host(user: str, host: str):
+    out = subprocess.check_output(['ssh', '-o', 'UserKnownHostsFile=/dev/null', '-o', 'StrictHostKeyChecking=no',
+                                   '-l', 'granting-service', host, 'grant-ssh-access', user])
+    print(out)
+
 
 def is_generated_by_us(keys_file):
     '''verify that the user was created by us'''
@@ -190,12 +200,21 @@ def user_name(val: str):
     return val
 
 
+def host_name(val: str):
+    '''Validate host name parameter'''
+
+    if not HOST_NAME_PATTERN.match(val):
+        raise argparse.ArgumentTypeError('Invalid host name')
+    return val
+
+
 def main(argv: list):
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers()
     cmd = subparsers.add_parser('grant-ssh-access')
     cmd.set_defaults(func=grant_ssh_access)
     cmd.add_argument('name', help='User name', type=user_name)
+    cmd.add_argument('--remote-host', help='Remote host to add user on', type=host_name)
     cmd = subparsers.add_parser('revoke-ssh-access')
     cmd.set_defaults(func=revoke_ssh_access)
     cmd.add_argument('name', help='User name', type=user_name)
