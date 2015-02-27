@@ -7,11 +7,13 @@ This script should be used as SSH forced command.
 
 import argparse
 import datetime
+import ipaddress
 import os
 import pwd
 import re
 import requests
 import shlex
+import socket
 import subprocess
 import sys
 import syslog
@@ -85,7 +87,9 @@ def download_public_key(url, name):
     '''Download the SSH public key for the given user name from URL'''
 
     r = requests.get('{url}/public-keys/{name}/sshkey.pub'.format(url=url, name=name))
-    r.raise_for_status()
+    if r.status_code != 200:
+        raise Exception('Failed to download public key for "{}" from {}: server returned status {}'.format(
+                        name, url, r.status_code))
     pubkey = fix_ssh_pubkey(name, r.text)
     return pubkey
 
@@ -130,6 +134,19 @@ def write_welcome_message(home_dir: Path):
     subprocess.check_call(['sudo', 'sh', '-c', command])
 
 
+def is_remote_host_allowed(remote_host: str):
+    config = get_config()
+    allowed_networks = config.get('allowed_remote_networks', [])
+    host_ips = []
+    for addrinfo in socket.getaddrinfo(remote_host, 22, proto=socket.IPPROTO_TCP):
+        host_ips.append(ipaddress.ip_address(addrinfo[4][0]))
+    for net in allowed_networks:
+        for host_ip in host_ips:
+            if host_ip in ipaddress.ip_network(net):
+                return True
+    return False
+
+
 def grant_ssh_access(args):
     user_name = args.name
 
@@ -155,13 +172,14 @@ def grant_ssh_access(args):
     write_welcome_message(keys_file.parent.parent)
 
     if args.remote_host:
+        if not is_remote_host_allowed(args.remote_host):
+            raise Exception('Remote host "{}" is not in one of the allowed networks'.format(args.remote_host))
         grant_ssh_access_on_remote_host(user_name, args.remote_host)
 
 
 def grant_ssh_access_on_remote_host(user: str, host: str):
-    out = subprocess.check_output(['ssh', '-o', 'UserKnownHostsFile=/dev/null', '-o', 'StrictHostKeyChecking=no',
-                                   '-l', 'granting-service', host, 'grant-ssh-access', user])
-    print(out)
+    subprocess.check_call(['ssh', '-o', 'UserKnownHostsFile=/dev/null', '-o', 'StrictHostKeyChecking=no',
+                           '-l', 'granting-service', host, 'grant-ssh-access', user])
 
 
 def is_generated_by_us(keys_file):
@@ -179,9 +197,8 @@ def revoke_ssh_access(args: list):
     keys_file = get_keys_file_path(user_name)
 
     if not is_generated_by_us(keys_file):
-        sys.stderr.write('Cannot revoke SSH access from user "{}": ' +
-                         'the user was not created by this script.\n'.format(user_name))
-        sys.exit(2)
+        raise Exception('Cannot revoke SSH access from user "{}": ' +
+                        'the user was not created by this script.\n'.format(user_name))
 
     forced_command = 'echo {}'.format(shlex.quote(REVOKED_MESSAGE.format(date=date())))
     generate_authorized_keys(user_name, keys_file, pubkey, forced_command)
@@ -225,7 +242,11 @@ def main(argv: list):
 
     syslog.openlog(ident=os.path.basename(__file__), logoption=syslog.LOG_PID, facility=syslog.LOG_AUTH)
     syslog.syslog(' '.join(argv))
-    args.func(args)
+    try:
+        args.func(args)
+    except Exception as e:
+        sys.stderr.write('ERROR: {}\n'.format(e))
+        sys.exit(1)
 
 
 if __name__ == '__main__':
