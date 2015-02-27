@@ -28,6 +28,7 @@
              {(s/optional-key :username) (s/both String (s/pred matches-username-pattern))
               :hostname (s/both String (s/pred matches-hostname-pattern))
               :reason (s/both String (s/pred non-empty))
+              (s/optional-key :remote-host) (s/both String (s/pred matches-hostname-pattern))
               })
 
 (defrecord Router [ldap ssh])
@@ -51,7 +52,7 @@
 (defn ensure-username [auth {:keys [username] :as req}]
   (assoc req :username (or username (:username auth))))
 
-(defn request-access [auth {:keys [hostname username reason] :as req} ssh ldap]
+(defn request-access [auth {:keys [hostname username reason remote-host] :as req} ssh ldap]
   (log/info "Requesting access for " req)
   (if (ldap-auth? auth ldap)
     (let [ip (dns/to-inet-address hostname)
@@ -59,7 +60,7 @@
           matching-networks (filter #(network-matches? % ip) networks)]
       (if (empty? matching-networks)
         (http/forbidden (str "Forbidden. Host " ip " is not in one of the allowed networks: " (print-str networks)))
-        (let [result (execute-ssh hostname (str "grant-ssh-access " username) ssh)]
+        (let [result (execute-ssh hostname (str "grant-ssh-access --remote-host=" remote-host " " username) ssh)]
           (if (zero? (:exit result))
             (http/ok (str "Access to host " ip " for user " username " was granted."))
             (http/bad-request (str "Failed: " result))))))

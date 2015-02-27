@@ -113,6 +113,10 @@ The following configuration parameters can/should be passed via environment vari
     The user's bind password (can be encrypted with KMS).
 ``LDAP_SSL``
     Boolean flag (``true`` or ``false``) whether to use TLS for the LDAP connection.
+``SSH_AGENT_FORWARDING``
+    Boolean flag whether to use agent forwarding (``-A``). Agent forwarding is necessary for bastion host support.
+``SSH_PORT``
+    SSH port number to use (default: 22).
 ``SSH_PRIVATE_KEY``
     The SSH private key (can be encrypted with KMS).
 ``SSH_USER``
