@@ -6,6 +6,7 @@
   "Check whether the given IP is in the given network (CIDR notation)"
   (-> net
       SubnetUtils.
+      (doto (.setInclusiveHostCount true))
       .getInfo
       (.isInRange ip)))
 
