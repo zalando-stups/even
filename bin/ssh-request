@@ -25,9 +25,10 @@ CONTEXT_SETTINGS = dict(help_option_names=['-h', '--help'])
 @click.argument('reason_cont', nargs=-1, metavar='[..]')
 @click.option('-u', '--user', help='Username to use for authentication', envvar='USER')
 @click.option('-p', '--password', help='Password to use for authentication', envvar='SSH_REQUEST_PASSWORD')
+@click.option('-r', '--remote-host', help='Remote host name (use "host" as bastion host)')
 @click.option('--url', help='SSH Access Granting Service URL', envvar='SSH_ACCESS_GRANTING_SERVICE_URL')
 @click.option('--insecure', help='Do not verify SSL certificate', is_flag=True, default=False)
-def main(host, user, password, reason, reason_cont, url, insecure):
+def main(host, user, password, remote_host, reason, reason_cont, url, insecure):
     # sdf
     parts = host.split('@')
     if len(parts) > 1:
@@ -59,6 +60,8 @@ def main(host, user, password, reason, reason_cont, url, insecure):
     if not url.endswith('/access-requests'):
         url = url.rstrip('/') + '/access-requests'
     data = {'username': username, 'hostname': hostname, 'reason': reason}
+    if remote_host:
+        data['remote-host'] = remote_host
     click.secho('Requesting access to host {hostname} for {username}..'.format(**vars()), bold=True)
     r = requests.post(url, headers={'Content-Type': 'application/json'},
                       data=json.dumps(data), auth=(user, password),
