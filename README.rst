@@ -122,6 +122,16 @@ The following configuration parameters can/should be passed via environment vari
 ``SSH_USER``
     The SSH username on remote servers (default: "granting-service").
 
+Requesting SSH Access
+=====================
+
+User's can use the convenience script ``ssh-request`` instead of doing a manual HTTP POST.
+It's recommended to put the ``bin`` directory into your path:
+
+.. code-block:: bash
+
+    $ export PATH=$PATH:<path-to-checkout>/bin
+    $ ssh-request bastion.example.org -r 172.31.0.1 "testing the ssh-request script"
 
 ToDos
 =====
