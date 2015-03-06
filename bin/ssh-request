@@ -40,6 +40,8 @@ def main(host, user, password, remote_host, reason, reason_cont, url, insecure):
 
     reason = ' '.join([reason] + list(reason_cont)).strip()
 
+    cacert = not insecure
+
     if not url:
         if not os.path.exists(CONFIG_FILE_PATH):
             os.makedirs(CONFIG_DIR_PATH, exist_ok=True)
@@ -51,6 +53,8 @@ def main(host, user, password, remote_host, reason, reason_cont, url, insecure):
         with open(CONFIG_FILE_PATH, 'rb') as fd:
             config = yaml.safe_load(fd)
         url = config['url']
+        if 'cacert' in config:
+            cacert = config['cacert']
 
     password = password or keyring.get_password(KEYRING_KEY, user)
 
@@ -65,7 +69,7 @@ def main(host, user, password, remote_host, reason, reason_cont, url, insecure):
     click.secho('Requesting access to host {hostname} for {username}..'.format(**vars()), bold=True)
     r = requests.post(url, headers={'Content-Type': 'application/json'},
                       data=json.dumps(data), auth=(user, password),
-                      verify=(not insecure))
+                      verify=cacert)
     if r.status_code == 200:
         click.secho(r.text, fg='green', bold=True)
     else:
