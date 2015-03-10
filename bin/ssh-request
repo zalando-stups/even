@@ -72,6 +72,12 @@ def main(host, user, password, remote_host, reason, reason_cont, url, insecure):
                       verify=cacert)
     if r.status_code == 200:
         click.secho(r.text, fg='green', bold=True)
+        ssh_command = ''
+        if remote_host:
+            ssh_command = 'ssh {username}@{remote_host}'.format(**vars())
+        click.secho('You can now access your server with the following command:')
+        click.secho('ssh -tA {username}@{hostname} {ssh_command}'.format(
+                    username=username, hostname=hostname, ssh_command=ssh_command))
     else:
         click.secho('Server returned status {code}: {text}'.format(code=r.status_code, text=r.text),
                     fg='red', bold=True)
