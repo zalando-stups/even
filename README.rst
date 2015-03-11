@@ -1,6 +1,6 @@
-===========================
-SSH Access Granting Service
-===========================
+====
+Even
+====
 
 .. image:: https://travis-ci.org/zalando/ssh-access-granting-service.svg?branch=master
    :target: https://travis-ci.org/zalando/ssh-access-granting-service
@@ -10,7 +10,7 @@ SSH Access Granting Service
    :target: https://coveralls.io/r/zalando/ssh-access-granting-service
    :alt: Coveralls status
 
-This is work in progress.
+SSH access granting service to distribute personal public SSH keys on demand.
 
 
 Idea
