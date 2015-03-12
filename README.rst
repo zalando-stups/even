@@ -1,6 +1,6 @@
-====
-Even
-====
+==================================
+Even - SSH Access Granting Service
+==================================
 
 .. image:: https://travis-ci.org/zalando/ssh-access-granting-service.svg?branch=master
    :target: https://travis-ci.org/zalando/ssh-access-granting-service
