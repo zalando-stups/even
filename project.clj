@@ -1,9 +1,9 @@
-(defproject server "0.1.0-SNAPSHOT"
+(defproject even "0.1.0-SNAPSHOT"
             :description "SSH public key server"
-            :url "https://github.com/zalando/ssh-access-granting-service"
+            :url "https://github.com/zalando-stups/even"
             :license {:name "Apache License"
                       :url "http://www.apache.org/licenses/"}
-            :scm {:url "git@github.com:zalando/ssh-access-granting-service.git"}
+            :scm {:url "git@github.com:zalando-stups/even"}
             :min-lein-version "2.0.0"
             :dependencies [[org.clojure/clojure "1.6.0"]
                            ; lifecycle management
@@ -37,7 +37,7 @@
 
             :main server.system
 
-            :uberjar-name "ssh-access-granting-service.jar"
+            :uberjar-name "even.jar"
             :profiles {
                        :log {:dependencies [[org.apache.logging.log4j/log4j-core "2.1"]
                                             [org.apache.logging.log4j/log4j-slf4j-impl "2.1"]]}
