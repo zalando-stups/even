@@ -74,7 +74,7 @@ To build a deployable artifact, use the ``uberjar`` task, that produces a single
 .. code-block:: bash
 
     $ lein uberjar
-    $ docker build -t ssh-access-granting-service .
+    $ docker build -t stups/even .
 
 Running
 =======
