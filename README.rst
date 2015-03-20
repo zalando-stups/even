@@ -2,12 +2,12 @@
 Even - SSH Access Granting Service
 ==================================
 
-.. image:: https://travis-ci.org/zalando/ssh-access-granting-service.svg?branch=master
-   :target: https://travis-ci.org/zalando/ssh-access-granting-service
+.. image:: https://travis-ci.org/zalando-stups/even.svg?branch=master
+   :target: https://travis-ci.org/zalando-stups/even
    :alt: Travis CI build status
 
-.. image:: https://coveralls.io/repos/zalando/ssh-access-granting-service/badge.svg
-   :target: https://coveralls.io/r/zalando/ssh-access-granting-service
+.. image:: https://coveralls.io/repos/zalando-stups/even/badge.svg
+   :target: https://coveralls.io/r/zalando-stups/even
    :alt: Coveralls status
 
 SSH access granting service to distribute personal public SSH keys on demand.
@@ -131,7 +131,7 @@ It's recommended to put the ``bin`` directory into your path:
 .. code-block:: bash
 
     $ export PATH=$PATH:<path-to-checkout>/bin
-    $ ssh-request bastion.example.org -r 172.31.0.1 "testing the ssh-request script"
+    $ ssh-request odd.myteam.example.org -r 172.31.0.1 "testing the ssh-request script"
 
 ToDos
 =====
@@ -144,3 +144,20 @@ This is purely experimental, but at least the following would be needed:
 * Harden everything
 
 .. _Leiningen: http://leiningen.org/
+
+License
+=======
+
+Copyright © 2015 Zalando SE
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
