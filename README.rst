@@ -125,13 +125,12 @@ The following configuration parameters can/should be passed via environment vari
 Requesting SSH Access
 =====================
 
-User's can use the convenience script ``ssh-request`` instead of doing a manual HTTP POST.
-It's recommended to put the ``bin`` directory into your path:
+User's can use the convenience script Piu_ instead of doing a manual HTTP POST.
 
 .. code-block:: bash
 
-    $ export PATH=$PATH:<path-to-checkout>/bin
-    $ ssh-request odd.myteam.example.org -r 172.31.0.1 "testing the ssh-request script"
+    $ sudo pip3 install --upgrade stups-piu
+    $ piu 172.31.0.1 "testing the piu script"
 
 ToDos
 =====
@@ -144,6 +143,7 @@ This is purely experimental, but at least the following would be needed:
 * Harden everything
 
 .. _Leiningen: http://leiningen.org/
+.. _Piu: https://github.com/zalando-stups/piu
 
 License
 =======
