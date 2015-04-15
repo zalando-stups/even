@@ -6,3 +6,4 @@ profiles.clj
 .idea
 local-*
 .nrepl*
+scm-source.json
