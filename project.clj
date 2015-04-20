@@ -1,29 +1,22 @@
 (defproject even "0.1.0-SNAPSHOT"
-            :description "SSH public key server"
+            :description "SSH access granting service"
             :url "https://github.com/zalando-stups/even"
             :license {:name "Apache License"
                       :url "http://www.apache.org/licenses/"}
             :scm {:url "git@github.com:zalando-stups/even"}
             :min-lein-version "2.0.0"
             :dependencies [[org.clojure/clojure "1.6.0"]
+                           [org.zalando.stups/friboo "0.6.0-SNAPSHOT"]
+
                            ; lifecycle management
                            [com.stuartsierra/component "0.2.2"]
                            [environ "1.0.0"]
-                           ; REST APIs
-                           [metosin/compojure-api "0.17.0"]
-                           [metosin/ring-http-response "0.5.2"]
-                           [metosin/ring-swagger-ui "2.0.17"]
-                           ; logging
-                           [org.clojure/tools.logging "0.2.4"]
-                           [org.slf4j/slf4j-api "1.7.7"]
-                           [org.slf4j/jul-to-slf4j "1.7.7"]
-                           [org.slf4j/jcl-over-slf4j "1.7.7"]
                            ; LDAP
                            [org.clojars.pntblnk/clj-ldap "0.0.9"]
                            ; SSH client
                            [clj-ssh "0.5.11"]
                            ; amazon aws (if upgrading, also check the joda-time version)
-                           [amazonica "0.3.12" :exclusions [joda-time commons-logging]]
+                           [amazonica "0.3.19" :exclusions [joda-time commons-logging]]
                            [joda-time "2.5"]
                            [org.clojure/data.json "0.2.5"]
                            [org.clojure/data.codec "0.1.0"]
@@ -35,9 +28,11 @@
 
             :aliases {"cloverage" ["with-profile" "test" "cloverage"]}
 
-            :main server.system
-
+            :main ^:skip-aot org.zalando.stups.even.core
             :uberjar-name "even.jar"
+
+            :docker {:image-name "stups/even"}
+
             :profiles {
                        :log {:dependencies [[org.apache.logging.log4j/log4j-core "2.1"]
                                             [org.apache.logging.log4j/log4j-slf4j-impl "2.1"]]}
@@ -47,8 +42,8 @@
                              :source-paths ["dev"]
                              :dependencies [[org.clojure/tools.namespace "0.2.9"]
                                             [org.clojure/java.classpath "0.2.0"]]}
-                       :test [:log {:dependencies [[org.clojars.runa/conjure "2.1.3"]
-                                                   [midje "1.6.3"]
-                                                   [clj-http "1.0.1"]]}]
+                       :test    {:dependencies [[clj-http-lite "0.2.1"]
+                                                [org.clojure/java.jdbc "0.3.6"]]}
+
                        :repl [:no-log]
-                       :uberjar [:log {:aot :all :resource-paths ["swagger-ui"]}]})
+                       :uberjar {:aot :all :resource-paths ["swagger-ui"]}})

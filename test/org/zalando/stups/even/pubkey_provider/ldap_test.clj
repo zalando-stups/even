@@ -1,7 +1,7 @@
-(ns server.pubkey-provider.ldap-test
+(ns org.zalando.stups.even.pubkey-provider.ldap-test
   (:require
     [clojure.test :refer :all]
-    [server.pubkey-provider.ldap :refer :all]
+    [org.zalando.stups.even.pubkey-provider.ldap :refer :all]
     [clj-ldap.client :as ldap]))
 
 

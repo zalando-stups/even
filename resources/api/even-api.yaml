@@ -1,0 +1,81 @@
+swagger: '2.0'
+
+info:
+  version: "0.1"
+  title: even
+  description: SSH access granting service
+  
+basePath: /
+schemes:
+  - https
+  
+consumes:
+  - application/json
+
+paths:
+  /public-keys/{name}/sshkey.pub:
+    get:
+      description: Download public SSH key
+      operationId: org.zalando.stups.even.api/serve-public-key
+      parameters:
+        - name: name
+          in: path
+          description: User name
+          required: true
+          type: string
+          pattern: ^[a-z][a-z0-9-]{0,31}$
+      responses:
+        200:
+          description: |
+            Return public SSH key as string, usable for authorized_keys file of OpenSSH.
+          schema:
+            type: string
+            title: PublicSshKey
+            
+  
+  /access-requests:
+    post:
+      description: |
+       Request SSH access to a single host
+      operationId: org.zalando.stups.even.api/request-access
+      parameters:
+        # An example parameter that is in query and is required
+        - name: accessrequest
+          in: body
+          description: Access Request
+          required: true
+          schema: 
+            title: AccessRequest
+            type: object
+            required:
+              - hostname
+              - reason
+            properties:
+              username:
+                type: string
+                description: A valid POSIX user name
+                example: jdoe
+                pattern: ^[a-z][a-z0-9-]{0,31}$
+              hostname:
+                type: string
+                description: A valid FQDN or IP address 
+                pattern: ^[a-z0-9.-]{0,255}$
+              reason:
+                type: string
+              remote-host:
+                type: string
+                description: A valid FQDN or IP address 
+                pattern: ^[a-z0-9.-]{0,255}$
+      
+          
+      # Expected responses for this operation:
+      responses:
+        # Response code
+        200:
+          description: Successful response
+          # A schema describing your response object.
+          # Use JSON Schema format
+          schema:
+            title: SuccessMessage
+            type: string
+            example: Access to host XY for user ABC was granted.

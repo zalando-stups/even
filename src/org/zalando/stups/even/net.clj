@@ -1,4 +1,4 @@
-(ns server.net
+(ns org.zalando.stups.even.net
   (:require     [clj-dns.core :as dns])
   (:import [org.apache.commons.net.util SubnetUtils]))
 

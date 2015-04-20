@@ -1,9 +1,9 @@
-(ns server.pubkey-provider.ldap
+(ns org.zalando.stups.even.pubkey-provider.ldap
   (:require
     [clojure.tools.logging :as log]
     [com.stuartsierra.component :as component]
     [clj-ldap.client :as ldap]
-    [server.config :as config]
+    [org.zalando.stups.even.config :as config]
     [clojure.set :refer [rename-keys]])
   )
 

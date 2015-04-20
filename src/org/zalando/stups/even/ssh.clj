@@ -1,7 +1,7 @@
-(ns server.ssh
+(ns org.zalando.stups.even.ssh
     (:require [clojure.tools.logging :as log]
       [clj-ssh.ssh :refer :all]
-      [server.config :as config])
+      [org.zalando.stups.even.config :as config])
     (:import
       [java.nio.file.attribute PosixFilePermissions]
       [java.nio.file.attribute FileAttribute]

@@ -1,16 +1,14 @@
-(ns server.api.router
+(ns org.zalando.stups.even.api
   (:require
-    [compojure.api.sweet :refer :all]
-    [compojure.api.middleware :refer :all]
-    [compojure.api.routes :as routes]
+    [org.zalando.stups.friboo.system.http :refer [def-http-component]]
     [clojure.tools.logging :as log]
     [schema.core :as s]
-    [server.pubkey-provider.ldap :refer [get-public-key ldap-auth? get-networks]]
-    [server.ssh :refer [execute-ssh]]
+    [org.zalando.stups.even.pubkey-provider.ldap :refer [get-public-key ldap-auth? get-networks]]
+    [org.zalando.stups.even.ssh :refer [execute-ssh]]
     [clojure.data.codec.base64 :as b64]
     [ring.util.http-response :as http]
     [clj-dns.core :as dns]
-    [server.net :refer [network-matches?]])
+    [org.zalando.stups.even.net :refer [network-matches?]])
   (:import [org.apache.commons.net.util SubnetUtils]))
 
 (def username-pattern
@@ -31,7 +29,9 @@
               (s/optional-key :remote-host) (s/both String (s/pred matches-hostname-pattern))
               })
 
-(defrecord Router [ldap ssh])
+(def-http-component API "api/even-api.yaml" [ldap ssh])
+
+(def default-http-configuration {:http-port 8080})
 
 
 (defmethod compojure.api.meta/restructure-param :auth
@@ -76,34 +76,6 @@
       (clojure.string/split #":" 2)
       (#(zipmap [:username :password] %))))
 
-(defn- api-routes [{:keys [ldap ssh]}]
-  (routes/with-routes
-    (swaggered
-      "System"
-      :description "Basic system operations"
-
-      (GET*
-        "/health" []
-        :summary "Performs a health check"
-        (log/info "Checking health")
-        (http/ok "OK")))
-
-    (swaggered
-      "Access Requests"
-      :description "Manage access requests"
-      (POST* "/access-requests" []
-             :summary "Request SSH access to a single host"
-             :return String
-             :body [request AccessRequest]
-             :auth authorization
-             (let [auth (parse-authorization authorization)]
-               (request-access auth (ensure-username auth request) ssh ldap))))
-    (swaggered
-      "Public Keys"
-      :description "Expose SSH public keys"
-      (GET* "/public-keys/:name/sshkey.pub" [name]
-            :summary "Download the user's SSH public key"
-            (serve-public-key name ldap)))))
 
 
 (defn- exception-logging [handler]

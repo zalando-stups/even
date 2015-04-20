@@ -1,4 +1,4 @@
-(ns server.config
+(ns org.zalando.stups.even.config
   (:require [clojure.tools.logging :as log]
             [clojure.string :refer [replace-first]]
             [clojure.edn :as edn]

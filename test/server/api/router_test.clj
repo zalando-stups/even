@@ -1,6 +1,6 @@
 (ns server.api.router-test
   (:require [clojure.test :refer :all]
-            [server.api.router :refer :all]
+            [server.api.api :refer :all]
             [schema.core :as s]
             [server.pubkey-provider.ldap :as ldap]
             [server.ssh :as ssh]

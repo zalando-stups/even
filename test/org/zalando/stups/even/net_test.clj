@@ -1,6 +1,6 @@
-(ns server.net-test    (:require
+(ns org.zalando.stups.even.net-test    (:require
                          [clojure.test :refer :all]
-                         [server.net :refer :all]
+                         [org.zalando.stups.even.net :refer :all]
                          [clj-dns.core :as dns]))
 
 (deftest test-is-in-range
