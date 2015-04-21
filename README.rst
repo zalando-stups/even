@@ -32,19 +32,6 @@ Users can request temporary SSH access to servers by calling the "SSH Access Gra
 Testing
 =======
 
-Testing the forced command script with a local mock service:
-
-.. code-block:: bash
-
-    $ sudo touch /etc/ssh-access-granting-service.yaml
-    $ sudo chown $USER /etc/ssh-access-granting-service.yaml
-    $ echo 'ssh_access_granting_service_url: "http://localhost:9000"' > /etc/ssh-access-granting-service.yaml
-    $ # serve your own public key via HTTP
-    $ mkdir -p public-keys/testuser
-    $ cp ~/.ssh/id_rsa.pub public-keys/testuser/sshkey.pub
-    $ python3 -m http.server 9000 &
-    $ ./grant-ssh-access-forced-command.py grant-ssh-access testuser
-    $ ssh testuser@localhost # try logging in
 
 Development
 ===========
@@ -85,12 +72,12 @@ Running the previously built Docker image and passing configuration via environm
 
     $ docker run -p 8080:8080 -e AWS_REGION_ID=eu-west-1 -e LDAP_HOST=ldap.example.org -e LDAP_SSL=true -e LDAP_BASE_DN=ou=users,dc=example,dc=org -e LDAP_GROUP_BASE_DN=ou=groups,dc=example,dc=org -e LDAP_BIND_DN=uid=ssh-key-reader,ou=users,dc=example,dc=org -e LDAP_PASSWORD="$LDAP_PASSWORD" -e SSH_PRIVATE_KEY="$SSH_PRIVATE_KEY" ssh-access-granting-service
 
-All configuration values can be passed encrypted when running on AWS:
+All configuration values can be passed encrypted when running on AWS (this is supported by the underlying Friboo_ library):
 
 .. code-block:: bash
 
     $ aws kms encrypt --key-id 123 --plaintext "secret" # encrypt with KMS
-    $ export LDAP_PASSWORD="aws:kms:crypto:<KMS-CIPHERTEXT-BLOB>"
+    $ export LDAP_PASSWORD="aws:kms:<KMS-CIPHERTEXT-BLOB>"
 
 Configuration
 =============
@@ -125,25 +112,17 @@ The following configuration parameters can/should be passed via environment vari
 Requesting SSH Access
 =====================
 
-User's can use the convenience script Piu_ instead of doing a manual HTTP POST.
+Users can use the convenience script Piu_ instead of doing a manual HTTP POST.
 
 .. code-block:: bash
 
     $ sudo pip3 install --upgrade stups-piu
     $ piu 172.31.0.1 "testing the piu script"
 
-ToDos
-=====
-
-This is purely experimental, but at least the following would be needed:
-
-* Integrate with Kerberos infrastructure
-* Implement SSH key rotation
-* Review security concept
-* Harden everything
 
 .. _Leiningen: http://leiningen.org/
-.. _Piu: https://github.com/zalando-stups/piu
+.. _Friboo: https://github.com/zalando-stups/friboo
+.. _Piu: http://stups.readthedocs.org/en/latest/components/piu.html
 
 License
 =======

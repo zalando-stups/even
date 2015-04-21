@@ -7,6 +7,7 @@
     [org.zalando.stups.even.ssh :refer [execute-ssh]]
     [clojure.data.codec.base64 :as b64]
     [ring.util.http-response :as http]
+    [ring.util.response :as ring]
     [clj-dns.core :as dns]
     [org.zalando.stups.even.net :refer [network-matches?]])
   (:import [org.apache.commons.net.util SubnetUtils]))
@@ -23,27 +24,49 @@
 (defn non-empty [s] (not (clojure.string/blank? s)))
 
 (s/defschema AccessRequest
-             {(s/optional-key :username) (s/both String (s/pred matches-username-pattern))
-              :hostname (s/both String (s/pred matches-hostname-pattern))
-              :reason (s/both String (s/pred non-empty))
-              (s/optional-key :remote-host) (s/both String (s/pred matches-hostname-pattern))
-              })
+  {(s/optional-key :username)    (s/both String (s/pred matches-username-pattern))
+   :hostname                     (s/both String (s/pred matches-hostname-pattern))
+   :reason                       (s/both String (s/pred non-empty))
+   (s/optional-key :remote-host) (s/both String (s/pred matches-hostname-pattern))
+   })
 
 (def-http-component API "api/even-api.yaml" [ldap ssh])
 
 (def default-http-configuration {:http-port 8080})
 
-(defn serve-public-key [name ldap]
+(defn serve-public-key [{:keys [name]} request ldap _]
   (if (re-matches username-pattern name)
-    (or (get-public-key name ldap)
-        (http/not-found "User not found"))
+    (if-let [ssh-key (get-public-key name ldap)]
+      (-> (ring/response ssh-key)
+          (ring/header "Content-Type" "text/plain"))
+      (http/not-found "User not found"))
     (http/bad-request "Invalid user name")))
 
 (defn ensure-username [auth {:keys [username] :as req}]
   (assoc req :username (or username (:username auth))))
 
-(defn request-access [auth {:keys [hostname username reason remote-host] :as req} ssh ldap]
-  (log/info "Requesting access for " req)
+(defn parse-authorization
+  "Parse HTTP Basic Authorization header"
+  [authorization]
+  (-> authorization
+      (clojure.string/replace-first "Basic " "")
+      .getBytes
+      b64/decode
+      String.
+      (clojure.string/split #":" 2)
+      (#(zipmap [:username :password] %))))
+
+(defn extract-auth
+  "Extract authorization from basic auth header"
+  [req]
+  (if-let [auth-value (get-in req [:headers "authorization"])]
+    (parse-authorization auth-value)))
+
+(defn request-access-with-auth
+  "Request server access with provided auth credentials"
+  [auth {:keys [hostname username remote-host reason]} ldap ssh]
+
+  (log/info "Requesting access to " username "@" hostname ", remote-host=" remote-host ", reason=" reason)
   (if (ldap-auth? auth ldap)
     (let [ip (dns/to-inet-address hostname)
           networks (get-networks (:username auth) ldap)
@@ -53,18 +76,17 @@
         (let [result (execute-ssh hostname (str "grant-ssh-access --remote-host=" remote-host " " username) ssh)]
           (if (zero? (:exit result))
             (http/ok (str "Access to host " ip " for user " username " was granted."))
-            (http/bad-request (str "Failed: " result))))))
+            (http/bad-request (str "SSH command failed: " (or (:err result) (:out result))))))))
     (http/forbidden "Authentication failed")))
 
-(defn parse-authorization [authorization]
-  "Parse HTTP Basic Authorization header"
-  (-> authorization
-      (clojure.string/replace-first "Basic " "")
-      .getBytes
-      b64/decode
-      String.
-      (clojure.string/split #":" 2)
-      (#(zipmap [:username :password] %))))
+
+(defn request-access [{:keys [request]} ring-request ldap ssh]
+  (if-let [auth (extract-auth ring-request)]
+    (request-access-with-auth auth (ensure-username auth request) ldap ssh)
+    (http/unauthorized "Unauthorized. Please authenticate with username and password.")))
+
+
+
 
 
 

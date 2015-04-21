@@ -6,13 +6,15 @@
               [org.zalando.stups.friboo.system :as system]
               [org.zalando.stups.friboo.log :as log]
       [org.zalando.stups.even.api :as api]
-      [org.zalando.stups.even.pubkey-provider.ldap :refer [new-ldap]]
-      [org.zalando.stups.even.ssh :refer [new-ssh]]
+      [org.zalando.stups.even.pubkey-provider.ldap :refer [new-ldap  default-ldap-configuration]]
+      [org.zalando.stups.even.ssh :refer [new-ssh default-ssh-configuration]]
       ))
 
 
-(defn new-system [config]
-      "Returns a new instance of the whole application"
+(defn new-system
+  "Returns a new instance of the whole application"
+  [config]
+
       (let [{:keys [ldap http ssh]} config]
       (component/system-map
         :api (using (api/map->API {:configuration http}) [:ldap :ssh])
@@ -26,6 +28,8 @@
   (let [configuration (config/load-configuration
                         [:http :ldap :ssh]
                         [api/default-http-configuration
+                         default-ssh-configuration
+                         default-ldap-configuration
                          default-configuration])
 
         system (new-system configuration)]

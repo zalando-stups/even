@@ -10,6 +10,9 @@
 
 (defrecord Ldap [config pool])
 
+(def default-ldap-configuration {:ldap-ssl true
+                                 :ldap-connect-timeout 10000})
+
 (defn get-ldap-user-dn [name {:keys [base-dn]}]
   "Build LDAP DN for a given user name"
   (str "uid=" name "," base-dn))
@@ -18,8 +21,8 @@
   {:host host
    :bind-dn bind-dn
    :password password
-   :ssl? (Boolean/parseBoolean ssl)
-   :connect-timeout (Integer/parseInt (or connect-timeout "10000"))})
+   :ssl? ssl
+   :connect-timeout connect-timeout})
 
 (defn ldap-connect [{:keys [config pool] :as ldap-server}]
   (if pool

@@ -4,13 +4,38 @@ info:
   version: "0.1"
   title: even
   description: SSH access granting service
-  
+
 basePath: /
-schemes:
-  - https
-  
+
 consumes:
   - application/json
+produces:
+  - application/json
+
+definitions:
+  AccessRequest:
+    required:
+      - hostname
+      - reason
+    properties:
+      username:
+        type: string
+        description: A valid POSIX user name
+        pattern: "^[a-z][a-z0-9-]{0,31}$"
+        example: jdoe
+      hostname:
+        type: string
+        description: A valid FQDN or IP address
+        pattern: "^[a-z0-9.-]{0,255}$"
+        example: my-host.example.org
+      reason:
+        type: string
+        description: The request reason
+        example: Troubleshoot problem XY
+      remote-host:
+        type: string
+        description: A valid FQDN or IP address
+        pattern: "^[a-z0-9.-]{0,255}$"
 
 paths:
   /public-keys/{name}/sshkey.pub:
@@ -23,7 +48,9 @@ paths:
           description: User name
           required: true
           type: string
-          pattern: ^[a-z][a-z0-9-]{0,31}$
+          pattern: "^[a-z][a-z0-9-]{0,31}$"
+      produces:
+        - text/plain
       responses:
         200:
           description: |
@@ -31,8 +58,12 @@ paths:
           schema:
             type: string
             title: PublicSshKey
-            
-  
+        404:
+          description: User and/or his SSH key cannot be found
+        400:
+          description: Invalid username parameter
+
+
   /access-requests:
     post:
       description: |
@@ -40,34 +71,13 @@ paths:
       operationId: org.zalando.stups.even.api/request-access
       parameters:
         # An example parameter that is in query and is required
-        - name: accessrequest
+        - name: request
           in: body
           description: Access Request
           required: true
-          schema: 
-            title: AccessRequest
-            type: object
-            required:
-              - hostname
-              - reason
-            properties:
-              username:
-                type: string
-                description: A valid POSIX user name
-                example: jdoe
-                pattern: ^[a-z][a-z0-9-]{0,31}$
-              hostname:
-                type: string
-                description: A valid FQDN or IP address 
-                pattern: ^[a-z0-9.-]{0,255}$
-              reason:
-                type: string
-              remote-host:
-                type: string
-                description: A valid FQDN or IP address 
-                pattern: ^[a-z0-9.-]{0,255}$
-      
-          
+          schema:
+            $ref: "#/definitions/AccessRequest"
+
       # Expected responses for this operation:
       responses:
         # Response code

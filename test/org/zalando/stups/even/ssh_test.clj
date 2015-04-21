@@ -15,6 +15,6 @@
                        connect (constantly "conn")
                        disconnect (constantly nil)
                        ssh #(identity %2)]
-                      (is (= {:cmd "my-command" :agent-forwarding true}
+                      (is (= {:cmd "my-command" :agent-forwarding nil}
                              (execute-ssh "my-host" "my-command" {:config {:user "my-user"
                                                                            :private-key "sshkey.pem"}})))))

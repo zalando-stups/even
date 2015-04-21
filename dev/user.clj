@@ -21,6 +21,7 @@
   "Tools for interactive development with the REPL. This file should
   not be included in a production build of the application."
   (:require
+    [environ.core :refer [env]]
     [clojure.java.javadoc :refer [javadoc]]
     [clojure.pprint :refer [pprint]]
     [clojure.reflect :refer [reflect]]
@@ -38,7 +39,7 @@
   "Starts the system running, sets the Var #'system."
   []
   (alter-var-root #'system
-                  (constantly (org.zalando.stups.even.core/run {:system-log-level "DEBUG"}))))
+                  (constantly (org.zalando.stups.even.core/run (assoc env :system-log-level "DEBUG")))))
 
 (defn stop
   "Stops the system if it is currently running, updates the Var
