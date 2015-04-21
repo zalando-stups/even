@@ -15,7 +15,7 @@
       "Returns a new instance of the whole application"
       (let [{:keys [ldap http ssh]} config]
       (component/system-map
-        :api (using (api/map->API {:configuration config}) [:ldap :ssh])
+        :api (using (api/map->API {:configuration http}) [:ldap :ssh])
         :ldap (using (new-ldap ldap) [])
         :ssh (using (new-ssh ssh) [])
         )))
@@ -26,8 +26,7 @@
   (let [configuration (config/load-configuration
                         [:http :ldap :ssh]
                         [api/default-http-configuration
-                         {}
-                         {}])
+                         default-configuration])
 
         system (new-system configuration)]
     (system/run configuration system)))

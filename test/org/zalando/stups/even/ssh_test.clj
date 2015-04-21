@@ -1,4 +1,4 @@
-(ns server.ssh-test
+(ns org.zalando.stups.even.ssh-test
     (:require
       [clojure.test :refer :all]
       [org.zalando.stups.even.ssh :refer :all]
