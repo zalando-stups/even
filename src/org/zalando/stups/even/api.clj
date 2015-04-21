@@ -33,16 +33,6 @@
 
 (def default-http-configuration {:http-port 8080})
 
-
-(defmethod compojure.api.meta/restructure-param :auth
-  [_ authorization {:keys [body] :as acc}]
-  "Parse Authorization"
-  (-> acc
-      (update-in [:lets] into [{{authorization "authorization"} :headers} '+compojure-api-request+])
-      (assoc :body `((if (string? ~authorization)
-                       (do ~@body)
-                       (http/unauthorized "Auth required"))))))
-
 (defn serve-public-key [name ldap]
   (if (re-matches username-pattern name)
     (or (get-public-key name ldap)
@@ -78,22 +68,3 @@
 
 
 
-(defn- exception-logging [handler]
-  (fn [request]
-    (try
-      (handler request)
-      (catch Exception e
-        (log/error e "Caught exception in web-tier")
-        (throw e)))))
-
-(defn new-app [router]
-  (api-middleware
-    (routes/with-routes
-      (swagger-ui)
-      (swagger-docs :title "SSH Access Granting Service")
-      (exception-logging (api-routes router)))))
-
-
-(defn ^Router new-router []
-  (log/info "Configuring router")
-  (map->Router {}))

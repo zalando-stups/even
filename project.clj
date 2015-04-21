@@ -7,7 +7,7 @@
             :min-lein-version "2.0.0"
             :dependencies [[org.clojure/clojure "1.6.0"]
                            [org.zalando.stups/friboo "0.6.0-SNAPSHOT"]
-
+                           [metosin/ring-http-response "0.5.2"]
                            ; lifecycle management
                            [com.stuartsierra/component "0.2.2"]
                            [environ "1.0.0"]

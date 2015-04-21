@@ -2,33 +2,42 @@
     (:gen-class)
     (:require [com.stuartsierra.component :as component :refer [using]]
       [environ.core :refer [env]]
+              [org.zalando.stups.friboo.config :as config]
+              [org.zalando.stups.friboo.system :as system]
+              [org.zalando.stups.friboo.log :as log]
       [org.zalando.stups.even.api :as api]
       [org.zalando.stups.even.pubkey-provider.ldap :refer [new-ldap]]
-      [org.zalando.stups.even.config :as config]
       [org.zalando.stups.even.ssh :refer [new-ssh]]
       ))
 
 
 (defn new-system [config]
       "Returns a new instance of the whole application"
-      (let [{:keys [ldap http ssh]} (config/parse (config/decrypt (config/load-defaults config)) [:ldap :http :ssh])]
+      (let [{:keys [ldap http ssh]} config]
       (component/system-map
-        :api (using (api/map->API {:configuration config}) [:ldap :ssh]))
+        :api (using (api/map->API {:configuration config}) [:ldap :ssh])
         :ldap (using (new-ldap ldap) [])
         :ssh (using (new-ssh ssh) [])
         )))
 
-(defn start [system]
-      (component/start system))
+(defn run
+  "Initializes and starts the whole system."
+  [default-configuration]
+  (let [configuration (config/load-configuration
+                        [:http :ldap :ssh]
+                        [api/default-http-configuration
+                         {}
+                         {}])
 
-(defn stop [system]
-      (component/stop system))
+        system (new-system configuration)]
+    (system/run configuration system)))
 
-(defn -main [& args]
-      (let [system (new-system env)]
+(defn -main
+  "The actual main for our uberjar."
+  [& args]
+  (try
+    (run {})
+    (catch Exception e
+      (log/error e "Could not start system because of %s." (str e))
+      (System/exit 1))))
 
-           (.addShutdownHook
-             (Runtime/getRuntime)
-             (Thread. (fn [] (stop system))))
-
-           (start system)))

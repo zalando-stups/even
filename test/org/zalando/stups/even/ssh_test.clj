@@ -1,7 +1,7 @@
 (ns server.ssh-test
     (:require
       [clojure.test :refer :all]
-      [server.ssh :refer :all]
+      [org.zalando.stups.even.ssh :refer :all]
       [clj-ssh.ssh :refer :all]))
 
 (deftest test-get-private-key-path

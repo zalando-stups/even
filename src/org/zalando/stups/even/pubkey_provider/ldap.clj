@@ -3,7 +3,7 @@
     [clojure.tools.logging :as log]
     [com.stuartsierra.component :as component]
     [clj-ldap.client :as ldap]
-    [org.zalando.stups.even.config :as config]
+
     [clojure.set :refer [rename-keys]])
   )
 
@@ -24,7 +24,7 @@
   (if pool
     pool
     (let [ldap-config (ldap-config config)]
-      (log/info "Connecting to LDAP server " (config/mask ldap-config) + " ..")
+      (log/info "Connecting to LDAP server..")
       (let [conn (ldap/connect ldap-config)]
         (assoc ldap-server :pool conn)
         conn)
@@ -52,5 +52,5 @@
                                                :attributes [:ipHostNumber]}))))
 
 (defn ^Ldap new-ldap [config]
-  (log/info "Configuring LDAP with" (config/mask config))
+  ;(log/info "Configuring LDAP with" (config/mask config))
   (map->Ldap {:config config}))
