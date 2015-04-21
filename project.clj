@@ -1,4 +1,4 @@
-(defproject even "0.1.0-SNAPSHOT"
+(defproject org.zalando.stups/even "0.1.0-SNAPSHOT"
   :description "SSH access granting service"
   :url "https://github.com/zalando-stups/even"
   :license {:name "Apache License"
@@ -25,7 +25,8 @@
 
   :plugins [[lein-environ "1.0.0"]
             [lein-cloverage "1.0.2"]
-            [lein-kibit "0.0.8"]]
+            [lein-kibit "0.0.8"]
+            [io.sarnowski/lein-docker "1.1.0"]]
 
   :docker {:image-name "stups/even"}
 

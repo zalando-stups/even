@@ -28,11 +28,6 @@ Users can request temporary SSH access to servers by calling the "SSH Access Gra
 .. image:: https://raw.githubusercontent.com/zalando-stups/even/master/docs/_static/grant-ssh-access-flow.png
    :alt: Grant SSH access flow
 
-
-Testing
-=======
-
-
 Development
 ===========
 
@@ -60,8 +55,7 @@ To build a deployable artifact, use the ``uberjar`` task, that produces a single
 
 .. code-block:: bash
 
-    $ lein uberjar
-    $ docker build -t stups/even .
+    $ lein do uberjar, docker build
 
 Running
 =======
@@ -70,7 +64,7 @@ Running the previously built Docker image and passing configuration via environm
 
 .. code-block:: bash
 
-    $ docker run -p 8080:8080 -e AWS_REGION_ID=eu-west-1 -e LDAP_HOST=ldap.example.org -e LDAP_SSL=true -e LDAP_BASE_DN=ou=users,dc=example,dc=org -e LDAP_GROUP_BASE_DN=ou=groups,dc=example,dc=org -e LDAP_BIND_DN=uid=ssh-key-reader,ou=users,dc=example,dc=org -e LDAP_PASSWORD="$LDAP_PASSWORD" -e SSH_PRIVATE_KEY="$SSH_PRIVATE_KEY" ssh-access-granting-service
+    $ docker run -p 8080:8080 -e AWS_REGION_ID=eu-west-1 -e LDAP_HOST=ldap.example.org -e LDAP_SSL=true -e LDAP_BASE_DN=ou=users,dc=example,dc=org -e LDAP_GROUP_BASE_DN=ou=groups,dc=example,dc=org -e LDAP_BIND_DN=uid=ssh-key-reader,ou=users,dc=example,dc=org -e LDAP_PASSWORD="$LDAP_PASSWORD" -e SSH_PRIVATE_KEY="$SSH_PRIVATE_KEY" stups/even
 
 All configuration values can be passed encrypted when running on AWS (this is supported by the underlying Friboo_ library):
 
