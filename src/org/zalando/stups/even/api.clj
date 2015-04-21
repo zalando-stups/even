@@ -10,7 +10,8 @@
     [ring.util.response :as ring]
     [clj-dns.core :as dns]
     [org.zalando.stups.even.net :refer [network-matches?]])
-  (:import [org.apache.commons.net.util SubnetUtils]))
+  (:import [clojure.lang ExceptionInfo]
+           [org.apache.commons.net.util SubnetUtils]))
 
 (def username-pattern
   "A valid POSIX user name (e.g. 'jdoe')"
@@ -79,10 +80,14 @@
             (http/bad-request (str "SSH command failed: " (or (:err result) (:out result))))))))
     (http/forbidden "Authentication failed")))
 
+(defn validate-request [request]
+  (try (s/validate AccessRequest request)
+       (catch ExceptionInfo e
+         (throw (ex-info (str "Invalid request: " (.getMessage e)) {:http-code 400})))))
 
 (defn request-access [{:keys [request]} ring-request ldap ssh]
   (if-let [auth (extract-auth ring-request)]
-    (request-access-with-auth auth (ensure-username auth request) ldap ssh)
+    (request-access-with-auth auth (ensure-username auth (validate-request request)) ldap ssh)
     (http/unauthorized "Unauthorized. Please authenticate with username and password.")))
 
 

@@ -8,14 +8,14 @@
             ))
 
 (deftest test-access-request-validation-fails
-  (are [req] (thrown? Exception (s/validate AccessRequest req))
+  (are [req] (thrown? Exception (validate-request req))
              {}
              {:username "a"}
              {:hostname "a"}
              ))
 
 (deftest test-access-request-validation-succeeds
-  (are [req] (= req (s/validate AccessRequest req))
+  (are [req] (= req (validate-request req))
              ; username is optional
              {:hostname "b" :reason "a"}
              {:username "my-user" :hostname "some.host" :reason "test"}
