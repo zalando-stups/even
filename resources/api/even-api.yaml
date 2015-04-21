@@ -1,0 +1,104 @@
+swagger: '2.0'
+
+info:
+  version: "0.1"
+  title: even
+  description: SSH access granting service
+
+basePath: /
+
+consumes:
+  - application/json
+produces:
+  - application/json
+
+definitions:
+  AccessRequest:
+    required:
+      - hostname
+      - reason
+    properties:
+      username:
+        type: string
+        description: The user to request access for
+        pattern: "^[a-z][a-z0-9-]{0,31}$"
+        example: jdoe
+      hostname:
+        type: string
+        description: The host to request access at
+        pattern: "^[a-z0-9.-]{0,255}$"
+        example: my-host.example.org
+      reason:
+        type: string
+        description: The request reason
+        example: Troubleshoot problem XY
+      remote-host:
+        type: string
+        description: Private remote host to gain access to
+        pattern: "^[a-z0-9.-]{0,255}$"
+
+paths:
+  /public-keys/{name}/sshkey.pub:
+    get:
+      summary: Download public SSH key
+      description: Return public SSH key as string, usable for authorized_keys file of OpenSSH.
+      operationId: org.zalando.stups.even.api/serve-public-key
+      tags:
+        - PublicKeys
+      parameters:
+        - name: name
+          in: path
+          description: User name
+          required: true
+          type: string
+          pattern: "^[a-z][a-z0-9-]{0,31}$"
+      produces:
+        - text/plain
+      responses:
+        200:
+          description: SSH key found
+          schema:
+            type: string
+            title: PublicSshKey
+        404:
+          description: User and/or his SSH key cannot be found
+        400:
+          description: Invalid username parameter
+
+
+  /access-requests:
+    post:
+      summary: Request SSH access to a single host
+      description: |
+          Request SSH access to a single host.
+          The "hostname" property usually points to a "odd" SSH bastion host.
+          The "remote-host" property usually points to a private EC2 instance.
+      operationId: org.zalando.stups.even.api/request-access
+      tags:
+        - AccessRequests
+      parameters:
+        # An example parameter that is in query and is required
+        - name: request
+          in: body
+          description: Access Request
+          required: true
+          schema:
+            $ref: "#/definitions/AccessRequest"
+
+      # Expected responses for this operation:
+      responses:
+        # Response code
+        200:
+          description: Successful response
+          # A schema describing your response object.
+          # Use JSON Schema format
+          schema:
+            title: SuccessMessage
+            type: string
+            example: Access to host XY for user ABC was granted.
+        400:
+          description: Invalid request, please check your data.
+        401:
+          description: Unauthorized, please authenticate.
+        403:
+          description: Forbidden, you are not allowed to gain SSH access to the specified host.

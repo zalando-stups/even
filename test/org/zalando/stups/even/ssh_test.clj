@@ -1,7 +1,7 @@
-(ns server.ssh-test
+(ns org.zalando.stups.even.ssh-test
     (:require
       [clojure.test :refer :all]
-      [server.ssh :refer :all]
+      [org.zalando.stups.even.ssh :refer :all]
       [clj-ssh.ssh :refer :all]))
 
 (deftest test-get-private-key-path
@@ -15,6 +15,6 @@
                        connect (constantly "conn")
                        disconnect (constantly nil)
                        ssh #(identity %2)]
-                      (is (= {:cmd "my-command" :agent-forwarding true}
+                      (is (= {:cmd "my-command" :agent-forwarding nil}
                              (execute-ssh "my-host" "my-command" {:config {:user "my-user"
                                                                            :private-key "sshkey.pem"}})))))

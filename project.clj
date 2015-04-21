@@ -1,54 +1,58 @@
-(defproject even "0.1.0-SNAPSHOT"
-            :description "SSH public key server"
-            :url "https://github.com/zalando-stups/even"
-            :license {:name "Apache License"
-                      :url "http://www.apache.org/licenses/"}
-            :scm {:url "git@github.com:zalando-stups/even"}
-            :min-lein-version "2.0.0"
-            :dependencies [[org.clojure/clojure "1.6.0"]
-                           ; lifecycle management
-                           [com.stuartsierra/component "0.2.2"]
-                           [environ "1.0.0"]
-                           ; REST APIs
-                           [metosin/compojure-api "0.17.0"]
-                           [metosin/ring-http-response "0.5.2"]
-                           [metosin/ring-swagger-ui "2.0.17"]
-                           ; logging
-                           [org.clojure/tools.logging "0.2.4"]
-                           [org.slf4j/slf4j-api "1.7.7"]
-                           [org.slf4j/jul-to-slf4j "1.7.7"]
-                           [org.slf4j/jcl-over-slf4j "1.7.7"]
-                           ; LDAP
-                           [org.clojars.pntblnk/clj-ldap "0.0.9"]
-                           ; SSH client
-                           [clj-ssh "0.5.11"]
-                           ; amazon aws (if upgrading, also check the joda-time version)
-                           [amazonica "0.3.12" :exclusions [joda-time commons-logging]]
-                           [joda-time "2.5"]
-                           [org.clojure/data.json "0.2.5"]
-                           [org.clojure/data.codec "0.1.0"]
-                           [com.brweber2/clj-dns "0.0.2"]
-                           [commons-net/commons-net "3.3"]]
-            :plugins [[lein-environ "1.0.0"]
-                      [lein-cloverage "1.0.2"]
-                      [lein-kibit "0.0.8"]]
+(defproject org.zalando.stups/even "0.2-SNAPSHOT"
+  :description "SSH access granting service"
+  :url "https://github.com/zalando-stups/even"
+  :license {:name "Apache License"
+            :url  "http://www.apache.org/licenses/"}
+  :scm {:url "git@github.com:zalando-stups/even"}
+  :min-lein-version "2.0.0"
 
-            :aliases {"cloverage" ["with-profile" "test" "cloverage"]}
+  :dependencies [[org.clojure/clojure "1.6.0"]
+                 [org.zalando.stups/friboo "0.6.0-SNAPSHOT"]
+                 [metosin/ring-http-response "0.5.2"]
+                 ; LDAP
+                 [org.clojars.pntblnk/clj-ldap "0.0.9"]
+                 ; SSH client
+                 [clj-ssh "0.5.11"]
+                 [amazonica "0.3.19"]
 
-            :main server.system
+                 [org.clojure/data.json "0.2.5"]
+                 [org.clojure/data.codec "0.1.0"]
+                 [com.brweber2/clj-dns "0.0.2"]
+                 [commons-net/commons-net "3.3"]]
 
-            :uberjar-name "even.jar"
-            :profiles {
-                       :log {:dependencies [[org.apache.logging.log4j/log4j-core "2.1"]
-                                            [org.apache.logging.log4j/log4j-slf4j-impl "2.1"]]}
-                       :no-log {:dependencies [[org.slf4j/slf4j-nop "1.7.7"]]}
-                       :dev {
-                             :repl-options {:init-ns user}
-                             :source-paths ["dev"]
-                             :dependencies [[org.clojure/tools.namespace "0.2.9"]
-                                            [org.clojure/java.classpath "0.2.0"]]}
-                       :test [:log {:dependencies [[org.clojars.runa/conjure "2.1.3"]
-                                                   [midje "1.6.3"]
-                                                   [clj-http "1.0.1"]]}]
-                       :repl [:no-log]
-                       :uberjar [:log {:aot :all :resource-paths ["swagger-ui"]}]})
+  :main ^:skip-aot org.zalando.stups.even.core
+  :uberjar-name "even.jar"
+
+  :plugins [[lein-environ "1.0.0"]
+            [lein-cloverage "1.0.2"]
+            [lein-kibit "0.0.8"]
+            [io.sarnowski/lein-docker "1.1.0"]]
+
+  :docker {:image-name "stups/even"}
+
+  :release-tasks [["vcs" "assert-committed"]
+                  ["change" "version" "leiningen.release/bump-version" "release"]
+                  ["vcs" "commit"]
+                  ["vcs" "tag"]
+                  ["clean"]
+                  ["uberjar"]
+                  ["docker" "build"]
+                  ["docker" "push"]
+                  ["change" "version" "leiningen.release/bump-version"]
+                  ["vcs" "commit"]
+                  ["vcs" "push"]]
+
+  :aliases {"cloverage" ["with-profile" "test" "cloverage"]}
+
+  :profiles {:uberjar {:aot :all}
+
+             :test    {:dependencies [[clj-http-lite "0.2.1"]
+                                      [org.clojure/java.jdbc "0.3.6"]]}
+
+             :dev     {:repl-options {:init-ns user}
+                       :source-paths ["dev"]
+                       :dependencies [[org.clojure/tools.namespace "0.2.10"]
+                                      [org.clojure/java.classpath "0.2.2"]
+                                      [clj-http-lite "0.2.1"]
+                                      [org.clojure/java.jdbc "0.3.6"]]}})
+

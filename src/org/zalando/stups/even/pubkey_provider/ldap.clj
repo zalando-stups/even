@@ -1,13 +1,17 @@
-(ns server.pubkey-provider.ldap
+(ns org.zalando.stups.even.pubkey-provider.ldap
   (:require
     [clojure.tools.logging :as log]
     [com.stuartsierra.component :as component]
     [clj-ldap.client :as ldap]
-    [server.config :as config]
-    [clojure.set :refer [rename-keys]])
+
+    [clojure.set :refer [rename-keys]]
+    [org.zalando.stups.friboo.config :as config])
   )
 
 (defrecord Ldap [config pool])
+
+(def default-ldap-configuration {:ldap-ssl true
+                                 :ldap-connect-timeout 10000})
 
 (defn get-ldap-user-dn [name {:keys [base-dn]}]
   "Build LDAP DN for a given user name"
@@ -17,14 +21,14 @@
   {:host host
    :bind-dn bind-dn
    :password password
-   :ssl? (Boolean/parseBoolean ssl)
-   :connect-timeout (Integer/parseInt (or connect-timeout "10000"))})
+   :ssl? ssl
+   :connect-timeout connect-timeout})
 
 (defn ldap-connect [{:keys [config pool] :as ldap-server}]
   (if pool
     pool
     (let [ldap-config (ldap-config config)]
-      (log/info "Connecting to LDAP server " (config/mask ldap-config) + " ..")
+      (log/info "Connecting to LDAP server.." (config/mask ldap-config))
       (let [conn (ldap/connect ldap-config)]
         (assoc ldap-server :pool conn)
         conn)
