@@ -38,6 +38,8 @@
 
 (def default-http-configuration {:http-port 8080})
 
+(def empty-access-request {:username nil :hostname nil :reason nil :remote-host nil})
+
 (defn strip-prefix [key]
   (-> key
       name
@@ -62,6 +64,9 @@
 (defn ensure-username [auth {:keys [username] :as req}]
   (assoc req :username (or username (:username auth))))
 
+(defn ensure-request-keys [request]
+  (merge empty-access-request request))
+
 (defn parse-authorization
   "Parse HTTP Basic Authorization header"
   [authorization]
@@ -81,8 +86,7 @@
 
 (defn update-access-request-status
   [handle status reason user db]
-  (sql/update-access-request! (sq/to-sql (merge handle {:status status :status-reason reason :last-modified-by user}))  {:connection db})
-  )
+  (sql/update-access-request! (sq/to-sql (merge handle {:status status :status-reason reason :last-modified-by user}))  {:connection db}))
 
 (defn request-access-with-auth
   "Request server access with provided auth credentials"
@@ -117,10 +121,11 @@
 
 (defn request-access [{:keys [request]} ring-request ldap ssh db]
   (if-let [auth (extract-auth ring-request)]
-    (request-access-with-auth auth (ensure-username auth (validate-request request)) ldap ssh db)
+    (request-access-with-auth auth (->> request
+                                        validate-request
+                                        (ensure-username auth)
+                                        ensure-request-keys) ldap ssh db)
     (http/unauthorized "Unauthorized. Please authenticate with username and password.")))
-
-
 
 (defn list-access-requests [parameters _ _ _ db]
   (let [result (map from-sql (sql/list-access-requests (sq/to-sql parameters) {:connection db}))]
