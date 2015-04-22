@@ -40,7 +40,9 @@
 
 (def empty-access-request {:username nil :hostname nil :reason nil :remote-host nil})
 
-(defn strip-prefix [key]
+(defn strip-prefix
+  "Strip the database table prefix from the given key"
+  [key]
   (-> key
       name
       (.split "_")
@@ -53,7 +55,9 @@
   [row]
   (zipmap (map strip-prefix (keys row)) (vals row)))
 
-(defn serve-public-key [{:keys [name]} request ldap _ _]
+(defn serve-public-key
+  "Return the user's public SSH key as plaintext"
+  [{:keys [name]} request ldap _ _]
   (if (re-matches username-pattern name)
     (if-let [ssh-key (get-public-key name ldap)]
       (-> (ring/response ssh-key)
@@ -64,7 +68,9 @@
 (defn ensure-username [auth {:keys [username] :as req}]
   (assoc req :username (or username (:username auth))))
 
-(defn ensure-request-keys [request]
+(defn ensure-request-keys
+  "Ensure that all access request keys exist in the given map"
+  [request]
   (merge empty-access-request request))
 
 (defn parse-authorization
@@ -85,6 +91,7 @@
     (parse-authorization auth-value)))
 
 (defn update-access-request-status
+  "Update access request status in database"
   [handle status reason user db]
   (sql/update-access-request! (sq/to-sql (merge handle {:status status :status-reason reason :last-modified-by user}))  {:connection db}))
 
@@ -98,28 +105,31 @@
           auth-user (:username auth)
           networks (get-networks auth-user ldap)
           matching-networks (filter #(network-matches? % ip) networks)
-
           handle (from-sql (first (sql/create-access-request (sq/to-sql (assoc access-request :created-by auth-user)) {:connection db})))]
       (if (empty? matching-networks)
-        (do
-          (update-access-request-status handle "DENIED" "" auth-user db)
-          (http/forbidden (str "Forbidden. Host " ip " is not in one of the allowed networks: " (print-str networks))))
+        (let [msg (str "Forbidden. Host " ip " is not in one of the allowed networks: " (print-str networks))]
+          (update-access-request-status handle "DENIED" msg auth-user db)
+          (http/forbidden msg))
         (let [result (execute-ssh hostname (str "grant-ssh-access --remote-host=" remote-host " " username) ssh)]
           (if (zero? (:exit result))
-            (do
-              (update-access-request-status handle "GRANTED" "" auth-user db)
-              (http/ok (str "Access to host " ip " for user " username " was granted.")))
-            (do
-              (update-access-request-status handle "FAILED" (str result) auth-user db)
-              (http/bad-request (str "SSH command failed: " (or (:err result) (:out result)))))))))
+            (let [msg (str "Access to host " ip " for user " username " was granted.")]
+              (update-access-request-status handle "GRANTED" msg auth-user db)
+              (http/ok msg))
+            (let [msg (str "SSH command failed: " (or (:err result) (:out result)))]
+              (update-access-request-status handle "FAILED" msg auth-user db)
+              (http/bad-request msg))))))
     (http/forbidden "Authentication failed")))
 
-(defn validate-request [request]
+(defn validate-request
+  "Validate the given access request"
+  [request]
   (try (s/validate AccessRequest request)
        (catch ExceptionInfo e
          (throw (ex-info (str "Invalid request: " (.getMessage e)) {:http-code 400})))))
 
-(defn request-access [{:keys [request]} ring-request ldap ssh db]
+(defn request-access
+  "Request SSH access to a specific host"
+  [{:keys [request]} ring-request ldap ssh db]
   (if-let [auth (extract-auth ring-request)]
     (request-access-with-auth auth (->> request
                                         validate-request
@@ -127,7 +137,9 @@
                                         ensure-request-keys) ldap ssh db)
     (http/unauthorized "Unauthorized. Please authenticate with username and password.")))
 
-(defn list-access-requests [parameters _ _ _ db]
+(defn list-access-requests
+  "Return list of most recent access requests from database"
+  [parameters _ _ _ db]
   (let [result (map from-sql (sql/list-access-requests (sq/to-sql parameters) {:connection db}))]
     (-> (ring/response result)
         (fring/content-type-json))))
