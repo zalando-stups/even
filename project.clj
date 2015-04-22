@@ -1,4 +1,4 @@
-(defproject org.zalando.stups/even "0.2-SNAPSHOT"
+(defproject org.zalando.stups/even "0.3-SNAPSHOT"
   :description "SSH access granting service"
   :url "https://github.com/zalando-stups/even"
   :license {:name "Apache License"
@@ -7,13 +7,17 @@
   :min-lein-version "2.0.0"
 
   :dependencies [[org.clojure/clojure "1.6.0"]
-                 [org.zalando.stups/friboo "0.6.0-SNAPSHOT"]
+                 [org.zalando.stups/friboo "0.6.0"]
                  [metosin/ring-http-response "0.5.2"]
                  ; LDAP
                  [org.clojars.pntblnk/clj-ldap "0.0.9"]
                  ; SSH client
                  [clj-ssh "0.5.11"]
                  [amazonica "0.3.19"]
+
+                 [yesql "0.5.0-rc2"]
+                 [org.postgresql/postgresql "9.3-1102-jdbc41"]
+                 [squirrel "0.1.1"]
 
                  [org.clojure/data.json "0.2.5"]
                  [org.clojure/data.codec "0.1.0"]

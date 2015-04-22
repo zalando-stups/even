@@ -67,6 +67,23 @@ paths:
 
 
   /access-requests:
+    get:
+      summary: List most recent access requests
+      operationId: org.zalando.stups.even.api/list-access-requests
+      tags:
+        - AccessRequests
+      parameters:
+        - name: limit
+          in: query
+          type: integer
+          required: false
+        - name: offset
+          in: query
+          type: integer
+          required: false
+      responses:
+        200:
+          description: List of access requests
     post:
       summary: Request SSH access to a single host
       description: |
