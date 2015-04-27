@@ -38,7 +38,7 @@
 
 (def default-http-configuration {:http-port 8080})
 
-(def empty-access-request {:username nil :hostname nil :reason nil :remote-host nil})
+(def empty-access-request {:username nil :hostname nil :reason nil :remote-host nil :lifetime_minutes 60})
 
 (defn strip-prefix
   "Strip the database table prefix from the given key"
@@ -90,10 +90,7 @@
   (if-let [auth-value (get-in req [:headers "authorization"])]
     (parse-authorization auth-value)))
 
-(defn update-access-request-status
-  "Update access request status in database"
-  [handle status reason user db]
-  (sql/update-access-request! (sq/to-sql (merge handle {:status status :status-reason reason :last-modified-by user}))  {:connection db}))
+
 
 (defn request-access-with-auth
   "Request server access with provided auth credentials"
@@ -108,15 +105,15 @@
           handle (from-sql (first (sql/create-access-request (sq/to-sql (assoc access-request :created-by auth-user)) {:connection db})))]
       (if (empty? matching-networks)
         (let [msg (str "Forbidden. Host " ip " is not in one of the allowed networks: " (print-str networks))]
-          (update-access-request-status handle "DENIED" msg auth-user db)
+          (sql/update-access-request-status handle "DENIED" msg auth-user db)
           (http/forbidden msg))
         (let [result (execute-ssh hostname (str "grant-ssh-access --remote-host=" remote-host " " username) ssh)]
           (if (zero? (:exit result))
             (let [msg (str "Access to host " ip " for user " username " was granted.")]
-              (update-access-request-status handle "GRANTED" msg auth-user db)
+              (sql/update-access-request-status handle "GRANTED" msg auth-user db)
               (http/ok msg))
             (let [msg (str "SSH command failed: " (or (:err result) (:out result)))]
-              (update-access-request-status handle "FAILED" msg auth-user db)
+              (sql/update-access-request-status handle "FAILED" msg auth-user db)
               (http/bad-request msg))))))
     (http/forbidden "Authentication failed")))
 

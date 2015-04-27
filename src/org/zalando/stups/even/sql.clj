@@ -1,6 +1,7 @@
 (ns org.zalando.stups.even.sql
   (:require [yesql.core :refer [defqueries]]
-            [org.zalando.stups.friboo.system.db :refer [def-db-component]]))
+            [org.zalando.stups.friboo.system.db :refer [def-db-component]]
+            [bugsbio.squirrel :as sq]))
 
 (def-db-component DB :auto-migration? true)
 
@@ -12,3 +13,8 @@
    :db-password "postgres"})
 
 (defqueries "db/even.sql")
+
+(defn update-access-request-status
+  "Update access request status in database"
+  [handle status reason user db]
+  (update-access-request! (sq/to-sql (merge handle {:status status :status-reason reason :last-modified-by user}))  {:connection db}))
