@@ -27,6 +27,7 @@
 
 (defn revoke-expired-access-requests [ssh db configuration]
   (let [expired-requests (sql/get-expired-access-requests {} {:connection db})]
+    (log/info "Revoking" (count expired-requests) "requests..")
     (doseq [req expired-requests]
       (revoke-expired-access-request ssh db req))))
 
