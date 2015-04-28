@@ -26,12 +26,14 @@
 (defn matches-username-pattern [s] (re-matches username-pattern s))
 (defn matches-hostname-pattern [s] (re-matches hostname-pattern s))
 (defn non-empty [s] (not (clojure.string/blank? s)))
+(defn valid-lifetime [i] (and (pos? i) (<= i 525600)))
 
 (s/defschema AccessRequest
-  {(s/optional-key :username)    (s/both String (s/pred matches-username-pattern))
-   :hostname                     (s/both String (s/pred matches-hostname-pattern))
-   :reason                       (s/both String (s/pred non-empty))
-   (s/optional-key :remote-host) (s/both String (s/pred matches-hostname-pattern))
+  {(s/optional-key :username)         (s/both String (s/pred matches-username-pattern))
+   :hostname                          (s/both String (s/pred matches-hostname-pattern))
+   :reason                            (s/both String (s/pred non-empty))
+   (s/optional-key :remote-host)      (s/both String (s/pred matches-hostname-pattern))
+   (s/optional-key :lifetime_minutes) (s/both s/Int (s/pred valid-lifetime))
    })
 
 (def-http-component API "api/even-api.yaml" [ldap ssh db])
@@ -74,8 +76,6 @@
   [req]
   (if-let [auth-value (get-in req [:headers "authorization"])]
     (parse-authorization auth-value)))
-
-
 
 (defn request-access-with-auth
   "Request server access with provided auth credentials"

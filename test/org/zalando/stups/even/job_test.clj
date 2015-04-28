@@ -9,7 +9,7 @@
                 sql/update-access-request! (constantly 1)
                 ssh/execute-ssh (constantly {:exit 0})]
 
-    (revoke-expired-access-requests {} {} {})))
+    (revoke-expired-access-requests {} {})))
 
 
 

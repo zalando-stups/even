@@ -36,3 +36,7 @@ RETURNING l_id, l_resource_name
 DELETE FROM locks
       WHERE l_resource_name = :resource_name
         AND l_id = :id
+
+-- name: clean-up-old-locks!
+DELETE FROM locks
+      WHERE now() > l_created + interval '1 hour'
