@@ -15,21 +15,21 @@
 
 
 (defn revoke-expired-access-request [ssh db {:keys [hostname remote_host username] :as req}]
-  (log/info "Revoking expired access request" req)
+  (log/info "Revoking expired access request %s.." req)
   (let [result (execute-ssh hostname (str "revoke-ssh-access --remote-host=" remote_host " " username) ssh)]
     (if (zero? (:exit result))
       (let [msg (str "Access to host " hostname " for user " username " was revoked.")]
         (sql/update-access-request-status req "REVOKED" msg "job" db)
         (log/info msg))
       (let [msg (str "SSH command failed: " (or (:err result) (:out result)))]
-        (sql/update-access-request-status req "FAILED" msg "job" db)
+        (sql/update-access-request-status req "GRANTED" msg "job" db)
         (log/error {} msg)))))
 
 (defn revoke-expired-access-requests [ssh db configuration]
   (let [expired-requests (sql/get-expired-access-requests {} {:connection db})]
-    (log/info "Revoking" (count expired-requests) "requests..")
+    (log/info "Revoking %s expired access requests.." (count expired-requests))
     (doseq [req expired-requests]
-      (revoke-expired-access-request ssh db req))))
+      (revoke-expired-access-request ssh db (sql/from-sql req)))))
 
 (defn run-revoke-expired-access-requests [ssh db configuration]
   (try

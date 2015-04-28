@@ -14,6 +14,21 @@
 
 (defqueries "db/even.sql")
 
+(defn strip-prefix
+  "Strip the database table prefix from the given key"
+  [key]
+  (-> key
+      name
+      (.split "_")
+      rest
+      (#(clojure.string/join "_" %))
+      keyword))
+
+(defn from-sql
+  "Transform a database result row to a valid result object: strip table prefix from column names"
+  [row]
+  (zipmap (map strip-prefix (keys row)) (vals row)))
+
 (defn update-access-request-status
   "Update access request status in database"
   [handle status reason user db]

@@ -9,7 +9,7 @@ ORDER BY ar_id DESC
   SELECT *
     FROM access_requests
    WHERE ar_status = 'GRANTED'
-     AND now() < ar_created + (ar_lifetime_minutes * interval '1 minute')
+     AND now() > ar_created + (ar_lifetime_minutes * interval '1 minute')
 ORDER BY ar_id ASC
 
 -- name: create-access-request

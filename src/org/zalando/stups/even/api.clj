@@ -40,21 +40,6 @@
 
 (def empty-access-request {:username nil :hostname nil :reason nil :remote-host nil :lifetime_minutes 60})
 
-(defn strip-prefix
-  "Strip the database table prefix from the given key"
-  [key]
-  (-> key
-      name
-      (.split "_")
-      rest
-      (#(clojure.string/join "_" %))
-      keyword))
-
-(defn from-sql
-  "Transform a database result row to a valid result object: strip table prefix from column names"
-  [row]
-  (zipmap (map strip-prefix (keys row)) (vals row)))
-
 (defn serve-public-key
   "Return the user's public SSH key as plaintext"
   [{:keys [name]} request ldap _ _]
@@ -102,7 +87,7 @@
           auth-user (:username auth)
           networks (get-networks auth-user ldap)
           matching-networks (filter #(network-matches? % ip) networks)
-          handle (from-sql (first (sql/create-access-request (sq/to-sql (assoc access-request :created-by auth-user)) {:connection db})))]
+          handle (sql/from-sql (first (sql/create-access-request (sq/to-sql (assoc access-request :created-by auth-user)) {:connection db})))]
       (if (empty? matching-networks)
         (let [msg (str "Forbidden. Host " ip " is not in one of the allowed networks: " (print-str networks))]
           (sql/update-access-request-status handle "DENIED" msg auth-user db)
@@ -137,7 +122,7 @@
 (defn list-access-requests
   "Return list of most recent access requests from database"
   [parameters _ _ _ db]
-  (let [result (map from-sql (sql/list-access-requests (sq/to-sql parameters) {:connection db}))]
+  (let [result (map sql/from-sql (sql/list-access-requests (sq/to-sql parameters) {:connection db}))]
     (-> (ring/response result)
         (fring/content-type-json))))
 
