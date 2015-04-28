@@ -35,7 +35,14 @@ definitions:
       remote-host:
         type: string
         description: Private remote host to gain access to
+        example: 172.31.1.1
         pattern: "^[a-z0-9.-]{0,255}$"
+      lifetime_minutes:
+        type: integer
+        description: "Lifetime of the access request in minutes (default: 60)"
+        example: 60
+        minimum: 1
+        maximum: 525600 # 60*24*365 = 1 year
 
 paths:
   /public-keys/{name}/sshkey.pub:
@@ -74,10 +81,12 @@ paths:
         - AccessRequests
       parameters:
         - name: limit
+          description: Maximum number of results to return
           in: query
           type: integer
           required: false
         - name: offset
+          description: Offset of results
           in: query
           type: integer
           required: false

@@ -26,34 +26,21 @@
 (defn matches-username-pattern [s] (re-matches username-pattern s))
 (defn matches-hostname-pattern [s] (re-matches hostname-pattern s))
 (defn non-empty [s] (not (clojure.string/blank? s)))
+(defn valid-lifetime [i] (and (pos? i) (<= i 525600)))
 
 (s/defschema AccessRequest
-  {(s/optional-key :username)    (s/both String (s/pred matches-username-pattern))
-   :hostname                     (s/both String (s/pred matches-hostname-pattern))
-   :reason                       (s/both String (s/pred non-empty))
-   (s/optional-key :remote-host) (s/both String (s/pred matches-hostname-pattern))
+  {(s/optional-key :username)         (s/both String (s/pred matches-username-pattern))
+   :hostname                          (s/both String (s/pred matches-hostname-pattern))
+   :reason                            (s/both String (s/pred non-empty))
+   (s/optional-key :remote-host)      (s/both String (s/pred matches-hostname-pattern))
+   (s/optional-key :lifetime_minutes) (s/both s/Int (s/pred valid-lifetime))
    })
 
 (def-http-component API "api/even-api.yaml" [ldap ssh db])
 
 (def default-http-configuration {:http-port 8080})
 
-(def empty-access-request {:username nil :hostname nil :reason nil :remote-host nil})
-
-(defn strip-prefix
-  "Strip the database table prefix from the given key"
-  [key]
-  (-> key
-      name
-      (.split "_")
-      rest
-      (#(clojure.string/join "_" %))
-      keyword))
-
-(defn from-sql
-  "Transform a database result row to a valid result object: strip table prefix from column names"
-  [row]
-  (zipmap (map strip-prefix (keys row)) (vals row)))
+(def empty-access-request {:username nil :hostname nil :reason nil :remote-host nil :lifetime_minutes 60})
 
 (defn serve-public-key
   "Return the user's public SSH key as plaintext"
@@ -90,11 +77,6 @@
   (if-let [auth-value (get-in req [:headers "authorization"])]
     (parse-authorization auth-value)))
 
-(defn update-access-request-status
-  "Update access request status in database"
-  [handle status reason user db]
-  (sql/update-access-request! (sq/to-sql (merge handle {:status status :status-reason reason :last-modified-by user}))  {:connection db}))
-
 (defn request-access-with-auth
   "Request server access with provided auth credentials"
   [auth {:keys [hostname username remote-host reason] :as access-request} ldap ssh db]
@@ -105,18 +87,18 @@
           auth-user (:username auth)
           networks (get-networks auth-user ldap)
           matching-networks (filter #(network-matches? % ip) networks)
-          handle (from-sql (first (sql/create-access-request (sq/to-sql (assoc access-request :created-by auth-user)) {:connection db})))]
+          handle (sql/from-sql (first (sql/create-access-request (sq/to-sql (assoc access-request :created-by auth-user)) {:connection db})))]
       (if (empty? matching-networks)
         (let [msg (str "Forbidden. Host " ip " is not in one of the allowed networks: " (print-str networks))]
-          (update-access-request-status handle "DENIED" msg auth-user db)
+          (sql/update-access-request-status handle "DENIED" msg auth-user db)
           (http/forbidden msg))
         (let [result (execute-ssh hostname (str "grant-ssh-access --remote-host=" remote-host " " username) ssh)]
           (if (zero? (:exit result))
             (let [msg (str "Access to host " ip " for user " username " was granted.")]
-              (update-access-request-status handle "GRANTED" msg auth-user db)
+              (sql/update-access-request-status handle "GRANTED" msg auth-user db)
               (http/ok msg))
             (let [msg (str "SSH command failed: " (or (:err result) (:out result)))]
-              (update-access-request-status handle "FAILED" msg auth-user db)
+              (sql/update-access-request-status handle "FAILED" msg auth-user db)
               (http/bad-request msg))))))
     (http/forbidden "Authentication failed")))
 
@@ -140,7 +122,7 @@
 (defn list-access-requests
   "Return list of most recent access requests from database"
   [parameters _ _ _ db]
-  (let [result (map from-sql (sql/list-access-requests (sq/to-sql parameters) {:connection db}))]
+  (let [result (map sql/from-sql (sql/list-access-requests (sq/to-sql parameters) {:connection db}))]
     (-> (ring/response result)
         (fring/content-type-json))))
 
