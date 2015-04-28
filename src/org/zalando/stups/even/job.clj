@@ -24,7 +24,7 @@
   [ssh db {:keys [id hostname remote_host username] :as req}]
   (let [remaining-count (:count (first (sql/count-remaining-granted-access-requests {:hostname hostname :id id} {:connection db})))
         options (get-revoke-ssh-access-options remote_host username remaining-count)]
-    (execute-ssh hostname (apply str options) ssh)))
+    (execute-ssh hostname (clojure.string/join " " options) ssh)))
 
 (defn revoke-expired-access-request
   "Revoke a single expired access request"
@@ -37,7 +37,7 @@
         (log/info msg))
       (let [msg (str "SSH command failed: " (or (:err result) (:out result)))]
         (sql/update-access-request-status req "GRANTED" msg "job" db)
-        (log/error {} msg)))))
+        (log/warn msg)))))
 
 (defn revoke-expired-access-requests
   "Revoke all expired access requests"
