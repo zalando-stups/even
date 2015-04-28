@@ -25,3 +25,14 @@ UPDATE access_requests
        ar_last_modified = now(),
        ar_last_modified_by = :last_modified_by
  WHERE ar_id = :id
+
+-- name: acquire-lock
+INSERT INTO locks
+       (l_resource_name, l_created_by)
+VALUES (:resource_name, :created_by)
+RETURNING l_id, l_resource_name
+
+-- name: release-lock!
+DELETE FROM locks
+      WHERE l_resource_name = :resource_name
+        AND l_id = :id

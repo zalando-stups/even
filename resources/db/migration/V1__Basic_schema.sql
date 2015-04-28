@@ -25,3 +25,10 @@ CREATE TABLE access_requests (
     CONSTRAINT remote_host_pattern CHECK (ar_remote_host ~ '^[a-z0-9.-]{0,255}$'),
     CONSTRAINT lifetime_minutes_range CHECK (ar_lifetime_minutes > 0)
 );
+
+CREATE TABLE locks (
+    l_id serial PRIMARY KEY,
+    l_resource_name TEXT NOT NULL UNIQUE,
+    l_created timestamp NOT NULL DEFAULT now(),
+    l_created_by TEXT
+);

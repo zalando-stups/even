@@ -1,6 +1,4 @@
 (ns org.zalando.stups.even.job
-
-
   (:require [org.zalando.stups.friboo.system.cron :refer [def-cron-component]]
             [org.zalando.stups.friboo.log :as log]
             [org.zalando.stups.even.sql :as sql]
@@ -33,9 +31,12 @@
 
 (defn run-revoke-expired-access-requests [ssh db configuration]
   (try
-     (revoke-expired-access-requests ssh db configuration)
-     (catch Exception e
-       (log/error e "Caught exception while executing CRON job: %s" (str e)))))
+    (log/info "running cron")
+    (let [lock (sql/from-sql (first (sql/acquire-lock {:resource_name "revoke-expired-access-requests" :created_by "job"} {:connection db})))]
+      (revoke-expired-access-requests ssh db configuration)
+      (sql/release-lock! lock {:connection db}))
+    (catch Exception e
+      (log/error e "Caught exception while executing CRON job: %s" (str e)))))
 
 (def-cron-component
   Jobs [ssh db]
