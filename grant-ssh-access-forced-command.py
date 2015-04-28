@@ -191,9 +191,17 @@ def grant_ssh_access(args):
         grant_ssh_access_on_remote_host(user_name, args.remote_host)
 
 
-def grant_ssh_access_on_remote_host(user: str, host: str):
+def execute_ssh(user: str, host: str, command: str):
     subprocess.check_call(['ssh', '-o', 'UserKnownHostsFile=/dev/null', '-o', 'StrictHostKeyChecking=no',
-                           '-l', 'granting-service', host, 'grant-ssh-access', user])
+                           '-l', 'granting-service', host, command, user])
+
+
+def grant_ssh_access_on_remote_host(user: str, host: str):
+    execute_ssh(user, host, 'grant-ssh-access')
+
+
+def revoke_ssh_access_on_remote_host(user: str, host: str):
+    execute_ssh(user, host, 'revoke-ssh-access')
 
 
 def is_generated_by_us(keys_file):
@@ -205,17 +213,23 @@ def is_generated_by_us(keys_file):
 def revoke_ssh_access(args: list):
     user_name = args.name
 
-    url = get_service_url()
-    pubkey = download_public_key(url, user_name)
+    if not args.keep_local:
+        url = get_service_url()
+        pubkey = download_public_key(url, user_name)
 
-    keys_file = get_keys_file_path(user_name)
+        keys_file = get_keys_file_path(user_name)
 
-    if not is_generated_by_us(keys_file):
-        raise Exception('Cannot revoke SSH access from user "{}": ' +
-                        'the user was not created by this script.\n'.format(user_name))
+        if not is_generated_by_us(keys_file):
+            raise Exception('Cannot revoke SSH access from user "{}": ' +
+                            'the user was not created by this script.\n'.format(user_name))
 
-    forced_command = 'echo {}'.format(shlex.quote(REVOKED_MESSAGE.format(date=date())))
-    generate_authorized_keys(user_name, keys_file, pubkey, forced_command)
+        forced_command = 'echo {}'.format(shlex.quote(REVOKED_MESSAGE.format(date=date())))
+        generate_authorized_keys(user_name, keys_file, pubkey, forced_command)
+
+    if args.remote_host:
+        if not is_remote_host_allowed(args.remote_host):
+            raise Exception('Remote host "{}" is not in one of the allowed networks'.format(args.remote_host))
+        revoke_ssh_access_on_remote_host(user_name, args.remote_host)
 
 
 def fail_on_missing_command():
@@ -249,6 +263,8 @@ def main(argv: list):
     cmd = subparsers.add_parser('revoke-ssh-access')
     cmd.set_defaults(func=revoke_ssh_access)
     cmd.add_argument('name', help='User name', type=user_name)
+    cmd.add_argument('--remote-host', help='Remote host to remove user from', type=host_name)
+    cmd.add_argument('--keep-local', help='Keep local SSH access, only remove on remote host', action='store_true')
     args = parser.parse_args(argv)
 
     if not hasattr(args, 'func'):

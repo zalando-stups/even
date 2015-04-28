@@ -12,6 +12,14 @@ ORDER BY ar_id DESC
      AND now() > ar_created + (ar_lifetime_minutes * interval '1 minute')
 ORDER BY ar_id ASC
 
+-- name: count-remaining-granted-access-requests
+-- return the number of remaining SSH access "connections" to the given hostname excluding the given request ID
+SELECT COUNT(*) AS count
+  FROM access_requests
+ WHERE ar_status = 'GRANTED'
+   AND ar_hostname = :hostname
+   AND ar_id != :id
+
 -- name: create-access-request
 INSERT INTO access_requests
        (ar_username, ar_hostname, ar_reason, ar_remote_host, ar_lifetime_minutes, ar_created_by)
