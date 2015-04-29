@@ -200,7 +200,11 @@ def grant_ssh_access(args):
 
 
 def execute_ssh(user: str, host: str, command: str):
-    subprocess.check_call(['ssh', '-o', 'UserKnownHostsFile=/dev/null', '-o', 'StrictHostKeyChecking=no',
+    subprocess.check_call(['ssh',
+                           '-o', 'UserKnownHostsFile=/dev/null',
+                           '-o', 'StrictHostKeyChecking=no',
+                           '-o', 'BatchMode=yes',
+                           '-o', 'ConnectTimeout=10',
                            '-l', 'granting-service', host, command, user])
 
 

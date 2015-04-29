@@ -77,12 +77,18 @@
   (if-let [auth-value (get-in req [:headers "authorization"])]
     (parse-authorization auth-value)))
 
+(defn resolve-hostname [hostname]
+  (try
+    (dns/to-inet-address hostname)
+    (catch Exception e
+      (throw (ex-info (str "Could not resolve hostname " hostname ": " (.getMessage e)) {:http-code 400})))))
+
 (defn request-access-with-auth
   "Request server access with provided auth credentials"
   [auth {:keys [hostname username remote_host reason] :as access-request} ldap ssh db]
   (log/info "Requesting access to " username "@" hostname ", remote-host=" remote_host ", reason=" reason)
   (if (ldap-auth? auth ldap)
-    (let [ip (dns/to-inet-address hostname)
+    (let [ip (resolve-hostname hostname)
           auth-user (:username auth)
           networks (get-networks auth-user ldap)
           matching-networks (filter #(network-matches? % ip) networks)

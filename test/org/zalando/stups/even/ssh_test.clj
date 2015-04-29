@@ -14,6 +14,7 @@
                        connected? (constantly false)
                        connect (constantly "conn")
                        disconnect (constantly nil)
+                       set-timeout (constantly nil)
                        ssh #(identity %2)]
                       (is (= {:cmd "my-command" :agent-forwarding nil}
                              (execute-ssh "my-host" "my-command" {:config {:user "my-user"
