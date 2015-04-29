@@ -42,11 +42,11 @@
 (defn revoke-expired-access-requests
   "Revoke all expired access requests"
   [ssh db]
-  (let [expired-requests (sql/get-expired-access-requests {} {:connection db})]
+  (let [expired-requests (map sql/from-sql (sql/get-expired-access-requests {} {:connection db}))]
     (log/info "Revoking %s expired access requests.." (count expired-requests))
     (doseq [req expired-requests]
       (sql/update-access-request-status req "EXPIRED" "Request lifetime exceeded" "job" db)
-      (revoke-expired-access-request ssh db (sql/from-sql req)))))
+      (revoke-expired-access-request ssh db req))))
 
 (defn acquire-lock [db]
   (try

@@ -16,23 +16,16 @@
   (:import [clojure.lang ExceptionInfo]
            [org.apache.commons.net.util SubnetUtils]))
 
-(def username-pattern
-  "A valid POSIX user name (e.g. 'jdoe')"
-  #"^[a-z][a-z0-9-]{0,31}$")
-(def hostname-pattern
-  "A valid FQDN or IP address"
-  #"^[a-z0-9.-]{0,255}$")
 
-(defn matches-username-pattern [s] (re-matches username-pattern s))
-(defn matches-hostname-pattern [s] (re-matches hostname-pattern s))
-(defn non-empty [s] (not (clojure.string/blank? s)))
+; most validations are now already done by Swagger1st!
 (defn valid-lifetime [i] (and (pos? i) (<= i 525600)))
 
+; most validations are now already done by Swagger1st!
 (s/defschema AccessRequest
-  {(s/optional-key :username)         (s/both String (s/pred matches-username-pattern))
-   :hostname                          (s/both String (s/pred matches-hostname-pattern))
-   :reason                            (s/both String (s/pred non-empty))
-   (s/optional-key :remote_host)      (s/both String (s/pred matches-hostname-pattern))
+  {(s/optional-key :username)         s/Str
+   :hostname                          s/Str
+   :reason                            s/Str
+   (s/optional-key :remote_host)      s/Str
    (s/optional-key :lifetime_minutes) (s/both s/Int (s/pred valid-lifetime))
    })
 
@@ -45,12 +38,10 @@
 (defn serve-public-key
   "Return the user's public SSH key as plaintext"
   [{:keys [name]} request ldap _ _]
-  (if (re-matches username-pattern name)
-    (if-let [ssh-key (get-public-key name ldap)]
-      (-> (ring/response ssh-key)
-          (ring/header "Content-Type" "text/plain"))
-      (http/not-found "User not found"))
-    (http/bad-request "Invalid user name")))
+  (if-let [ssh-key (get-public-key name ldap)]
+    (-> (ring/response ssh-key)
+        (ring/header "Content-Type" "text/plain"))
+    (http/not-found "User not found")))
 
 (defn ensure-username [auth {:keys [username] :as req}]
   (assoc req :username (or username (:username auth))))

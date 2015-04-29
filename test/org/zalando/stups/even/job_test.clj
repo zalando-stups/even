@@ -24,7 +24,6 @@
 
     (revoke-expired-access-requests {} {})))
 
-
 (deftest test-revoke-access-requests-ssh-failure
   (with-redefs [sql/get-expired-access-requests (constantly [{}])
                 sql/update-access-request! (constantly 1)
@@ -33,8 +32,12 @@
 
     (revoke-expired-access-requests {} {})))
 
-
-
+(deftest test-run-revoke-expired-access-requests
+  (with-redefs [sql/clean-up-old-locks! (constantly 1)
+                acquire-lock (constantly {:id 123})
+                revoke-expired-access-requests #(throw (Exception. (str "error" %1 %2)))
+                sql/release-lock! (constantly nil)]
+    (run-revoke-expired-access-requests {} {})))
 
 
 
