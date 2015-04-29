@@ -1,6 +1,9 @@
 -- name: list-access-requests
   SELECT *
     FROM access_requests
+   WHERE ar_status = COALESCE((:status)::access_request_status, ar_status)
+     AND ar_hostname = COALESCE(:hostname, ar_hostname)
+     AND ar_username = COALESCE(:username, ar_username)
 ORDER BY ar_id DESC
    LIMIT :limit
   OFFSET :offset

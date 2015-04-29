@@ -10,7 +10,8 @@
    :db-subprotocol "postgresql"
    :db-subname "//localhost:5432/even"
    :db-user "postgres"
-   :db-password "postgres"})
+   :db-password "postgres"
+   :db-init-sql "SET search_path TO ze_data, public"})
 
 (defqueries "db/even.sql")
 

@@ -32,7 +32,7 @@
   {(s/optional-key :username)         (s/both String (s/pred matches-username-pattern))
    :hostname                          (s/both String (s/pred matches-hostname-pattern))
    :reason                            (s/both String (s/pred non-empty))
-   (s/optional-key :remote-host)      (s/both String (s/pred matches-hostname-pattern))
+   (s/optional-key :remote_host)      (s/both String (s/pred matches-hostname-pattern))
    (s/optional-key :lifetime_minutes) (s/both s/Int (s/pred valid-lifetime))
    })
 
@@ -40,7 +40,7 @@
 
 (def default-http-configuration {:http-port 8080})
 
-(def empty-access-request {:username nil :hostname nil :reason nil :remote-host nil :lifetime_minutes 60})
+(def empty-access-request {:username nil :hostname nil :reason nil :remote_host nil :lifetime_minutes 60})
 
 (defn serve-public-key
   "Return the user's public SSH key as plaintext"
@@ -79,9 +79,8 @@
 
 (defn request-access-with-auth
   "Request server access with provided auth credentials"
-  [auth {:keys [hostname username remote-host reason] :as access-request} ldap ssh db]
-
-  (log/info "Requesting access to " username "@" hostname ", remote-host=" remote-host ", reason=" reason)
+  [auth {:keys [hostname username remote_host reason] :as access-request} ldap ssh db]
+  (log/info "Requesting access to " username "@" hostname ", remote-host=" remote_host ", reason=" reason)
   (if (ldap-auth? auth ldap)
     (let [ip (dns/to-inet-address hostname)
           auth-user (:username auth)
@@ -92,7 +91,7 @@
         (let [msg (str "Forbidden. Host " ip " is not in one of the allowed networks: " (print-str networks))]
           (sql/update-access-request-status handle "DENIED" msg auth-user db)
           (http/forbidden msg))
-        (let [result (execute-ssh hostname (str "grant-ssh-access --remote-host=" remote-host " " username) ssh)]
+        (let [result (execute-ssh hostname (str "grant-ssh-access --remote-host=" remote_host " " username) ssh)]
           (if (zero? (:exit result))
             (let [msg (str "Access to host " ip " for user " username " was granted.")]
               (sql/update-access-request-status handle "GRANTED" msg auth-user db)

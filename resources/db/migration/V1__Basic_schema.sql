@@ -1,8 +1,12 @@
+CREATE SCHEMA ze_data;
+SET search_path TO ze_data;
+
 CREATE TYPE access_request_status AS ENUM (
     'REQUESTED',
     'GRANTED',
     'DENIED',
     'FAILED',
+    'EXPIRED',
     'REVOKED'
 );
 
@@ -25,6 +29,8 @@ CREATE TABLE access_requests (
     CONSTRAINT remote_host_pattern CHECK (ar_remote_host ~ '^[a-z0-9.-]{0,255}$'),
     CONSTRAINT lifetime_minutes_range CHECK (ar_lifetime_minutes > 0)
 );
+
+CREATE INDEX access_requests_status_idx ON access_requests (ar_status);
 
 CREATE TABLE locks (
     l_id serial PRIMARY KEY,

@@ -32,7 +32,7 @@ definitions:
         type: string
         description: The request reason
         example: Troubleshoot problem XY
-      remote-host:
+      remote_host:
         type: string
         description: Private remote host to gain access to
         example: 172.31.1.1
@@ -90,6 +90,21 @@ paths:
           in: query
           type: integer
           required: false
+        - name: status
+          description: Filter requests by status
+          in: query
+          type: string
+          required: false
+        - name: hostname
+          description: Filter requests by hostname
+          in: query
+          type: string
+          required: false
+        - name: username
+          description: Filter requests by username
+          in: query
+          type: string
+          required: false
       responses:
         200:
           description: List of access requests
@@ -98,7 +113,7 @@ paths:
       description: |
           Request SSH access to a single host.
           The "hostname" property usually points to a "odd" SSH bastion host.
-          The "remote-host" property usually points to a private EC2 instance.
+          The "remote_host" property usually points to a private EC2 instance.
       operationId: org.zalando.stups.even.api/request-access
       tags:
         - AccessRequests

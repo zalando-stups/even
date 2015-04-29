@@ -119,6 +119,14 @@ def add_forced_command(pubkey, forced_command):
         return pubkey
 
 
+def user_exists(user_name: str) -> bool:
+    try:
+        pwd.getpwnam(user_name)
+        return True
+    except:
+        return False
+
+
 def get_keys_file_path(user_name: str) -> Path:
     pw_entry = pwd.getpwnam(user_name)
 
@@ -213,7 +221,7 @@ def is_generated_by_us(keys_file):
 def revoke_ssh_access(args: list):
     user_name = args.name
 
-    if not args.keep_local:
+    if not args.keep_local and user_exists(user_name):
         url = get_service_url()
         pubkey = download_public_key(url, user_name)
 

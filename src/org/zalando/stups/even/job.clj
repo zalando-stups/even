@@ -35,8 +35,8 @@
       (let [msg (str "Access to host " hostname " for user " username " was revoked.")]
         (sql/update-access-request-status req "REVOKED" msg "job" db)
         (log/info msg))
-      (let [msg (str "SSH command failed: " (or (:err result) (:out result)))]
-        (sql/update-access-request-status req "GRANTED" msg "job" db)
+      (let [msg (str "SSH revokation command failed: " (or (:err result) (:out result)))]
+        (sql/update-access-request-status req "EXPIRED" msg "job" db)
         (log/warn msg)))))
 
 (defn revoke-expired-access-requests
@@ -45,6 +45,7 @@
   (let [expired-requests (sql/get-expired-access-requests {} {:connection db})]
     (log/info "Revoking %s expired access requests.." (count expired-requests))
     (doseq [req expired-requests]
+      (sql/update-access-request-status req "EXPIRED" "Request lifetime exceeded" "job" db)
       (revoke-expired-access-request ssh db (sql/from-sql req)))))
 
 (defn acquire-lock [db]
