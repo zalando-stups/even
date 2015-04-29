@@ -65,7 +65,8 @@
       (try
         (revoke-expired-access-requests ssh db)
         (finally (sql/release-lock! lock {:connection db}))))
-    (catch Exception e
+    ; IMPORTANT: we need to catch all Throwables because yesql uses "assert" in some cases
+    (catch Throwable e
       (log/error e "Caught exception while executing CRON job: %s" (str e)))))
 
 (def-cron-component
