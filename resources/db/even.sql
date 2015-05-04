@@ -11,7 +11,8 @@ ORDER BY ar_id DESC
 -- name: get-expired-access-requests
   SELECT *
     FROM access_requests
-   WHERE ar_status = 'GRANTED'
+   WHERE (ar_status = 'GRANTED'
+      OR (ar_status = 'EXPIRED' AND now() > ar_last_modified + interval '5 minutes'))
      AND now() > ar_created + (ar_lifetime_minutes * interval '1 minute')
 ORDER BY ar_id ASC
 

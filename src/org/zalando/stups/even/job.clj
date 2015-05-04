@@ -35,7 +35,7 @@
       (let [msg (str "Access to host " hostname " for user " username " was revoked.")]
         (sql/update-access-request-status req "REVOKED" msg "job" db)
         (log/info msg))
-      (let [msg (str "SSH revokation command failed: " (or (:err result) (:out result)))]
+      (let [msg (str "SSH revocation command failed: " (or (:err result) (:out result)))]
         (sql/update-access-request-status req "EXPIRED" msg "job" db)
         (log/warn msg)))))
 
