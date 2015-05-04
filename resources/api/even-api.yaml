@@ -80,6 +80,8 @@ paths:
       operationId: org.zalando.stups.even.api/list-access-requests
       tags:
         - AccessRequests
+      security:
+        - oauth2: [uid]
       parameters:
         - name: limit
           description: Maximum number of results to return
@@ -118,6 +120,8 @@ paths:
       operationId: org.zalando.stups.even.api/request-access
       tags:
         - AccessRequests
+      security:
+        - oauth2: [uid]
       parameters:
         # An example parameter that is in query and is required
         - name: request
@@ -144,3 +148,11 @@ paths:
           description: Unauthorized, please authenticate.
         403:
           description: Forbidden, you are not allowed to gain SSH access to the specified host.
+
+securityDefinitions:
+  oauth2:
+    type: oauth2
+    flow: implicit
+    authorizationUrl: https://example.com/oauth2/dialog
+    scopes:
+      uid: Unique identifier of the user accessing the service.
