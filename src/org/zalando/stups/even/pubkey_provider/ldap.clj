@@ -25,7 +25,7 @@
    :connect-timeout connect-timeout})
 
 (defn ldap-connect [{:keys [config pool] :as ldap-server}]
-  (if pool
+  (or
     pool
     (let [ldap-config (ldap-config config)]
       (log/info "Connecting to LDAP server.." (config/mask ldap-config))
