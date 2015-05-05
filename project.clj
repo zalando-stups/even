@@ -29,7 +29,6 @@
 
   :plugins [[lein-environ "1.0.0"]
             [lein-cloverage "1.0.2"]
-            [lein-kibit "0.0.8"]
             [io.sarnowski/lein-docker "1.1.0"]]
 
   :docker {:image-name "stups/even"}
