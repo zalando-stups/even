@@ -16,8 +16,12 @@
   (with-redefs [sql/acquire-lock (fn [_ _] (throw (Exception. "duplicate key value violates unique constraint")))]
     (is (nil? (acquire-lock {})))))
 
+(def example-access-request
+  {:ar_created          (java.sql.Timestamp. 123)
+   :ar_lifetime_minutes 60})
+
 (deftest test-revoke-access-requests
-  (with-redefs [sql/get-expired-access-requests (constantly [{}])
+  (with-redefs [sql/get-expired-access-requests (constantly [example-access-request])
                 sql/update-access-request! (constantly 1)
                 sql/count-remaining-granted-access-requests (constantly [{:count 0}])
                 ssh/execute-ssh (constantly {:exit 0})]
@@ -25,7 +29,7 @@
     (revoke-expired-access-requests {} {})))
 
 (deftest test-revoke-access-requests-ssh-failure
-  (with-redefs [sql/get-expired-access-requests (constantly [{}])
+  (with-redefs [sql/get-expired-access-requests (constantly [example-access-request])
                 sql/update-access-request! (constantly 1)
                 sql/count-remaining-granted-access-requests (constantly [{:count 0}])
                 ssh/execute-ssh (constantly {:exit 1})]
@@ -39,5 +43,17 @@
                 sql/release-lock! (constantly nil)]
     (run-revoke-expired-access-requests {} {})))
 
-
+(deftest test-retry-revocation-without-remote-host
+  (are [res req] (= res (retry-revocation-without-remote-host? req))
+                 true {:created          (java.util.Date. 123)
+                       :lifetime_minutes 60
+                       :status           "EXPIRED"
+                       :status_reason    "Connection timed out"}
+                 false {:created          (java.util.Date.)
+                        :lifetime_minutes 60
+                        :status           "EXPIRED"
+                        :status_reason    "Connection timed out"}
+                 false {:created          (java.util.Date. 123)
+                        :lifetime_minutes 60
+                        :status           "GRANTED"}))
 

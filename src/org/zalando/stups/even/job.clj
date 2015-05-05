@@ -11,6 +11,8 @@
    :jobs-every-ms         30000
    :jobs-initial-delay-ms 1000})
 
+(def one-minute-millis
+  (* 60 1000))
 
 (defn get-revoke-ssh-access-options
   "Return command line options for the SSH forced command script"
@@ -19,11 +21,21 @@
       (concat (if (nil? remote_host) [] ["--remote-host" remote_host]))
       (concat (if (pos? remaining-count) ["--keep-local"] []))))
 
+(defn retry-revocation-without-remote-host?
+  "Should we retry the revoke-ssh-access command without remote host (e.g. because it was shut down)?"
+  [{:keys [created lifetime_minutes status status_reason]}]
+  (let [age_minutes (/ (- (System/currentTimeMillis) (.getTime created)) one-minute-millis)
+        expiration_minutes (- age_minutes lifetime_minutes)
+        expired_for_more_than_one_hour (> expiration_minutes 60)
+        was_timeout (and (= status "EXPIRED") (.contains status_reason "Connection timed out"))]
+    (and expired_for_more_than_one_hour was_timeout)))
+
 (defn revoke-ssh-access
   "Revoke SSH access to the given host/remote host"
-  [ssh db {:keys [id hostname remote_host username] :as req}]
+  [ssh db {:keys [id hostname remote_host username created lifetime_minutes status status_reason] :as req}]
   (let [remaining-count (:count (first (sql/count-remaining-granted-access-requests {:hostname hostname :id id} {:connection db})))
-        options (get-revoke-ssh-access-options remote_host username remaining-count)]
+        remote_host_or_nil (when-not (retry-revocation-without-remote-host? req) remote_host)
+        options (get-revoke-ssh-access-options remote_host_or_nil username remaining-count)]
     (execute-ssh hostname (clojure.string/join " " options) ssh)))
 
 (defn revoke-expired-access-request
