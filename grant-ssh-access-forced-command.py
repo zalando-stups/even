@@ -100,7 +100,7 @@ def get_service_url():
 def download_public_key(url, name):
     '''Download the SSH public key for the given user name from URL'''
 
-    r = requests.get('{url}/public-keys/{name}/sshkey.pub'.format(url=url, name=name))
+    r = requests.get('{url}/public-keys/{name}/sshkey.pub'.format(url=url, name=name), timeout=10)
     if r.status_code != 200:
         raise Exception('Failed to download public key for "{}" from {}: server returned status {}'.format(
                         name, url, r.status_code))
