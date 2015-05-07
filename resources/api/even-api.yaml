@@ -111,6 +111,10 @@ paths:
       responses:
         200:
           description: List of access requests
+          schema:
+            type: array
+            items:
+                $ref: "#/definitions/AccessRequest"
     post:
       summary: Request SSH access to a single host
       description: |
