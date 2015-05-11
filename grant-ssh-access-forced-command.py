@@ -222,6 +222,10 @@ def is_generated_by_us(keys_file):
     return MARKER.encode('utf-8') in output
 
 
+def kill_all_processes(user_name: str):
+    subprocess.call(['sudo', 'killall', '-KILL', '-u', user_name, '-w'])
+
+
 def revoke_ssh_access(args: list):
     user_name = args.name
 
@@ -237,6 +241,7 @@ def revoke_ssh_access(args: list):
 
         forced_command = 'echo {}'.format(shlex.quote(REVOKED_MESSAGE.format(date=date())))
         generate_authorized_keys(user_name, keys_file, pubkey, forced_command)
+        kill_all_processes(user_name)
 
     if args.remote_host:
         if not is_remote_host_allowed(args.remote_host):
