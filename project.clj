@@ -7,7 +7,7 @@
   :min-lein-version "2.0.0"
 
   :dependencies [[org.clojure/clojure "1.6.0"]
-                 [org.zalando.stups/friboo "0.14.0"]
+                 [org.zalando.stups/friboo "0.15.0"]
                  [metosin/ring-http-response "0.5.2"]
                  ; LDAP
                  [org.clojars.pntblnk/clj-ldap "0.0.9"]
