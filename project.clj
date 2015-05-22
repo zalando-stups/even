@@ -29,6 +29,7 @@
 
   :plugins [[lein-environ "1.0.0"]
             [lein-cloverage "1.0.2"]
+            [org.zalando.stups/lein-scm-source "0.2.0"]
             [io.sarnowski/lein-docker "1.1.0"]]
 
   :docker {:image-name "stups/even"}
