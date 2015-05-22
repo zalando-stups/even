@@ -1,7 +1,8 @@
 (ns org.zalando.stups.even.ssh
   (:require [clojure.tools.logging :as log]
             [clj-ssh.ssh :refer :all]
-            [org.zalando.stups.friboo.config :as config])
+            [org.zalando.stups.friboo.config :as config]
+            [com.netflix.hystrix.core :refer [defcommand]])
   (:import
     [java.nio.file.attribute PosixFilePermissions]
     [java.nio.file.attribute FileAttribute]

@@ -3,7 +3,7 @@
     [clojure.tools.logging :as log]
     [com.stuartsierra.component :as component]
     [clj-ldap.client :as ldap]
-
+    [com.netflix.hystrix.core :refer [defcommand]]
     [clojure.set :refer [rename-keys]]
     [org.zalando.stups.friboo.config :as config])
   )
@@ -34,11 +34,11 @@
         conn)
       )))
 
-(defn ldap-auth? [{:keys [username password]} {:keys [config] :as ldap-server}]
+(defcommand ldap-auth? [{:keys [username password]} {:keys [config] :as ldap-server}]
   (let [conn (ldap-connect ldap-server)]
     (ldap/bind? conn (get-ldap-user-dn username config) password)))
 
-(defn get-public-key [name {:keys [config] :as ldap-server}]
+(defcommand get-public-key [name {:keys [config] :as ldap-server}]
   "Get a user's public SSH key"
   (let [conn (ldap-connect ldap-server)]
     (:sshPublicKey (ldap/get conn (get-ldap-user-dn name config) [:sshPublicKey]))))

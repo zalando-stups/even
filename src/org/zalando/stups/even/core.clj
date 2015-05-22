@@ -12,7 +12,6 @@
             [org.zalando.stups.even.ssh :refer [new-ssh default-ssh-configuration]]
             ))
 
-
 (defn new-system
   "Returns a new instance of the whole application"
   [config]
@@ -28,6 +27,7 @@
 (defn run
   "Initializes and starts the whole system."
   [default-configuration]
+  (System/setProperty "hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds" "15000")
   (let [configuration (config/load-configuration
                         [:http :ldap :ssh :db :jobs]
                         [api/default-http-configuration
