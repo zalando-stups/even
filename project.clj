@@ -7,7 +7,7 @@
   :min-lein-version "2.0.0"
 
   :dependencies [[org.clojure/clojure "1.6.0"]
-                 [org.zalando.stups/friboo "0.16.0"]
+                 [org.zalando.stups/friboo "0.20.0"]
                  [metosin/ring-http-response "0.5.2"]
                  ; LDAP
                  [org.clojars.pntblnk/clj-ldap "0.0.9"]
@@ -16,9 +16,7 @@
                  [amazonica "0.3.19"]
 
                  [yesql "0.5.0-rc2"]
-                 [org.postgresql/postgresql "9.3-1102-jdbc41"]
                  [squirrel "0.1.1"]
-                 [org.zalando.stups/yesql-hystrix "0.1.0"]
 
                  [org.clojure/data.json "0.2.5"]
                  [org.clojure/data.codec "0.1.0"]

@@ -83,7 +83,7 @@
           auth-user (:username auth)
           networks (get-networks auth-user ldap)
           matching-networks (filter #(network-matches? % ip) networks)
-          handle (sql/from-sql (first (sql/create-access-request (sq/to-sql (assoc access-request :created-by auth-user)) {:connection db})))]
+          handle (sql/from-sql (first (sql/cmd-create-access-request (sq/to-sql (assoc access-request :created-by auth-user)) {:connection db})))]
       (if (empty? matching-networks)
         (let [msg (str "Forbidden. Host " ip " is not in one of the allowed networks: " (print-str networks))]
           (sql/update-access-request-status handle "DENIED" msg auth-user db)
@@ -118,7 +118,7 @@
 (defn list-access-requests
   "Return list of most recent access requests from database"
   [parameters _ _ _ db]
-  (let [result (map sql/from-sql (sql/list-access-requests (sq/to-sql parameters) {:connection db}))]
+  (let [result (map sql/from-sql (sql/cmd-list-access-requests (sq/to-sql parameters) {:connection db}))]
     (-> (ring/response result)
         (fring/content-type-json))))
 
