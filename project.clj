@@ -39,6 +39,7 @@
                   ["vcs" "tag"]
                   ["clean"]
                   ["uberjar"]
+                  ["scm-source"]
                   ["docker" "build"]
                   ["docker" "push"]
                   ["change" "version" "leiningen.release/bump-version"]
