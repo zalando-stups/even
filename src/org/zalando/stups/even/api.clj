@@ -65,8 +65,8 @@
 (defn extract-auth
   "Extract authorization from basic auth header"
   [req]
-  (if-let [auth-value (get-in req [:headers "authorization"])]
-    (parse-authorization auth-value)))
+  (if-let [uid (get-in req [:tokeninfo "uid"])]
+    {:username uid}))
 
 (defn resolve-hostname [hostname]
   (try
@@ -78,25 +78,23 @@
   "Request server access with provided auth credentials"
   [auth {:keys [hostname username remote_host reason] :as access-request} ldap ssh db]
   (log/info "Requesting access to " username "@" hostname ", remote-host=" remote_host ", reason=" reason)
-  (if (ldap-auth? auth ldap)
-    (let [ip (resolve-hostname hostname)
-          auth-user (:username auth)
-          networks (get-networks auth-user ldap)
-          matching-networks (filter #(network-matches? % ip) networks)
-          handle (sql/from-sql (first (sql/cmd-create-access-request (sq/to-sql (assoc access-request :created-by auth-user)) {:connection db})))]
-      (if (empty? matching-networks)
-        (let [msg (str "Forbidden. Host " ip " is not in one of the allowed networks: " (print-str networks))]
-          (sql/update-access-request-status handle "DENIED" msg auth-user db)
-          (http/forbidden msg))
-        (let [result (execute-ssh hostname (str "grant-ssh-access --remote-host=" remote_host " " username) ssh)]
-          (if (zero? (:exit result))
-            (let [msg (str "Access to host " ip " for user " username " was granted.")]
-              (sql/update-access-request-status handle "GRANTED" msg auth-user db)
-              (http/ok msg))
-            (let [msg (str "SSH command failed: " (or (:err result) (:out result)))]
-              (sql/update-access-request-status handle "FAILED" msg auth-user db)
-              (http/bad-request msg))))))
-    (http/forbidden "Authentication failed")))
+  (let [ip (resolve-hostname hostname)
+        auth-user (:username auth)
+        networks (get-networks auth-user ldap)
+        matching-networks (filter #(network-matches? % ip) networks)
+        handle (sql/from-sql (first (sql/cmd-create-access-request (sq/to-sql (assoc access-request :created-by auth-user)) {:connection db})))]
+    (if (empty? matching-networks)
+      (let [msg (str "Forbidden. Host " ip " is not in one of the allowed networks: " (print-str networks))]
+        (sql/update-access-request-status handle "DENIED" msg auth-user db)
+        (http/forbidden msg))
+      (let [result (execute-ssh hostname (str "grant-ssh-access --remote-host=" remote_host " " username) ssh)]
+        (if (zero? (:exit result))
+          (let [msg (str "Access to host " ip " for user " username " was granted.")]
+            (sql/update-access-request-status handle "GRANTED" msg auth-user db)
+            (http/ok msg))
+          (let [msg (str "SSH command failed: " (or (:err result) (:out result)))]
+            (sql/update-access-request-status handle "FAILED" msg auth-user db)
+            (http/bad-request msg)))))))
 
 (defn validate-request
   "Validate the given access request"
@@ -113,7 +111,7 @@
                                         validate-request
                                         (ensure-username auth)
                                         ensure-request-keys) ldap ssh db)
-    (http/unauthorized "Unauthorized. Please authenticate with username and password.")))
+    (http/unauthorized "Unauthorized. Please authenticate with a valid OAuth2 token.")))
 
 (defn list-access-requests
   "Return list of most recent access requests from database"

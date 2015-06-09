@@ -124,6 +124,8 @@ paths:
       operationId: org.zalando.stups.even.api/request-access
       tags:
         - AccessRequests
+      security:
+        - oauth2: [uid]
       parameters:
         # An example parameter that is in query and is required
         - name: request
