@@ -80,6 +80,8 @@ The following configuration parameters can/should be passed via environment vari
 
 ``AWS_REGION_ID``
     Optional AWS region ID to use for KMS decryption (e.g. "eu-west-1").
+``HTTP_TOKENINFO_URL``
+    URL to OAuth2 token info endpoint.
 ``LDAP_BASE_DN``
     DN of the user base.
 ``LDAP_BIND_DN``
@@ -94,6 +96,8 @@ The following configuration parameters can/should be passed via environment vari
     The user's bind password (can be encrypted with KMS).
 ``LDAP_SSL``
     Boolean flag (``true`` or ``false``) whether to use TLS for the LDAP connection.
+``OAUTH2_ACCESS_TOKEN_URL``
+    URL to OAuth2 provider endpoint to get a new service access token.
 ``SSH_AGENT_FORWARDING``
     Boolean flag whether to use agent forwarding (``-A``). Agent forwarding is necessary for bastion host support.
 ``SSH_PORT``
