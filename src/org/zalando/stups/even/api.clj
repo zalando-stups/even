@@ -4,7 +4,8 @@
     [clojure.tools.logging :as log]
     [schema.core :as s]
     [bugsbio.squirrel :as sq]
-    [org.zalando.stups.even.pubkey-provider.ldap :refer [get-public-key get-networks]]
+    [org.zalando.stups.even.pubkey-provider.ldap :refer [get-networks]]
+    [org.zalando.stups.even.pubkey-provider.usersvc :refer [get-public-key]]
     [org.zalando.stups.even.ssh :refer [execute-ssh]]
     [org.zalando.stups.even.sql :as sql]
     [clojure.data.codec.base64 :as b64]
@@ -29,7 +30,7 @@
    (s/optional-key :lifetime_minutes) (s/both s/Int (s/pred valid-lifetime))
    })
 
-(def-http-component API "api/even-api.yaml" [ldap ssh db])
+(def-http-component API "api/even-api.yaml" [ldap ssh db usersvc])
 
 (def default-http-configuration {:http-port 8080})
 
@@ -37,8 +38,8 @@
 
 (defn serve-public-key
   "Return the user's public SSH key as plaintext"
-  [{:keys [name]} request ldap _ _]
-  (if-let [ssh-key (get-public-key name ldap)]
+  [{:keys [name]} request _ _ _ usersvc]
+  (if-let [ssh-key (get-public-key name usersvc)]
     (-> (ring/response ssh-key)
         (ring/header "Content-Type" "text/plain"))
     (http/not-found "User not found")))
@@ -76,7 +77,7 @@
 
 (defn request-access-with-auth
   "Request server access with provided auth credentials"
-  [auth {:keys [hostname username remote_host reason] :as access-request} ldap ssh db]
+  [auth {:keys [hostname username remote_host reason] :as access-request} ldap ssh db usersvc]
   (log/info "Requesting access to " username "@" hostname ", remote-host=" remote_host ", reason=" reason)
   (let [ip (resolve-hostname hostname)
         auth-user (:username auth)
@@ -105,20 +106,21 @@
 
 (defn request-access
   "Request SSH access to a specific host"
-  [{:keys [request]} ring-request ldap ssh db]
+  [{:keys [request]} ring-request ldap ssh db usersvc]
   (if-let [auth (extract-auth ring-request)]
     (request-access-with-auth auth (->> request
                                         validate-request
                                         (ensure-username auth)
-                                        ensure-request-keys) ldap ssh db)
+                                        ensure-request-keys) ldap ssh db usersvc)
     (http/unauthorized "Unauthorized. Please authenticate with a valid OAuth2 token.")))
 
 (defn list-access-requests
   "Return list of most recent access requests from database"
-  [parameters _ _ _ db]
+  [parameters _ _ _ db _]
   (let [result (map sql/from-sql (sql/cmd-list-access-requests (sq/to-sql parameters) {:connection db}))]
     (-> (ring/response result)
         (fring/content-type-json))))
+
 
 
 

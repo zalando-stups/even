@@ -106,6 +106,8 @@ The following configuration parameters can/should be passed via environment vari
     The SSH private key (can be encrypted with KMS).
 ``SSH_USER``
     The SSH username on remote servers (default: "granting-service").
+``USERSVC_SSH_PUBLIC_KEY_URL_TEMPLATE``
+    URL template for the public SSH key endpoints ("{user}" will be replaced with the user's ID/username).
 
 Requesting SSH Access
 =====================

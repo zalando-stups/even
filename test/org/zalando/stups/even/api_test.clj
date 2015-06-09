@@ -35,7 +35,7 @@
                 sql/create-access-request (constantly [])
                 sql/update-access-request! (constantly nil)]
     (is (= {:status 403 :headers {} :body "Forbidden. Host /2.3.4.5 is not in one of the allowed networks: [{:cidr [1.0.0.0/8]}]"}
-           (request-access-with-auth {:username "user1"} {:hostname "2.3.4.5"} {} {} {})))))
+           (request-access-with-auth {:username "user1"} {:hostname "2.3.4.5"} {} {} {} {})))))
 
 (deftest test-request-access-success
   (with-redefs [
@@ -44,7 +44,7 @@
                 ldap/get-networks (constantly [{:cidr ["10.0.0.0/8"]}])
                 ssh/execute-ssh (constantly {:exit 0})]
     (is (= {:status 200 :headers {} :body "Access to host /10.1.2.3 for user user1 was granted."}
-           (request-access-with-auth {:username "user1"} {:hostname "10.1.2.3" :username "user1"} {} {} {})))))
+           (request-access-with-auth {:username "user1"} {:hostname "10.1.2.3" :username "user1"} {} {} {} {})))))
 
 (deftest test-request-no-auth
-  (is (= {:status 401 :headers {} :body "Unauthorized. Please authenticate with username and password."} (request-access {:request {}} {} {} {} {}))))
+  (is (= {:status 401 :headers {} :body "Unauthorized. Please authenticate with username and password."} (request-access {:request {}} {} {} {} {} {}))))

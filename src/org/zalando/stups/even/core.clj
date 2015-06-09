@@ -10,6 +10,7 @@
             [org.zalando.stups.friboo.system.oauth2 :as oauth2]
             [org.zalando.stups.even.job :as job]
             [org.zalando.stups.even.pubkey-provider.ldap :refer [new-ldap default-ldap-configuration]]
+            [org.zalando.stups.even.pubkey-provider.usersvc :refer [new-usersvc]]
             [org.zalando.stups.even.ssh :refer [new-ssh default-ssh-configuration]]
             ))
 
@@ -17,14 +18,15 @@
   "Returns a new instance of the whole application"
   [config]
 
-  (let [{:keys [ldap http ssh db jobs oauth2]} config]
+  (let [{:keys [ldap http ssh db jobs oauth2 usersvc]} config]
     (component/system-map
       :db (sql/map->DB {:configuration db})
       :tokens (oauth2/map->OAUth2TokenRefresher {:configuration oauth2
                                                  :tokens        {:user-service-ro-api ["uid"]}})
       :ldap (new-ldap ldap)
+      :usersvc (using (new-usersvc usersvc) [:tokens])
       :ssh (new-ssh ssh)
-      :api (using (api/map->API {:configuration http}) [:ldap :ssh :db])
+      :api (using (api/map->API {:configuration http}) [:ldap :ssh :db :usersvc])
       :jobs (using (job/map->Jobs {:configuration jobs}) [:ssh :db]))))
 
 (defn run
