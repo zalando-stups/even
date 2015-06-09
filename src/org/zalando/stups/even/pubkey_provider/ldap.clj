@@ -34,10 +34,6 @@
         conn)
       )))
 
-(defcommand ldap-auth? [{:keys [username password]} {:keys [config] :as ldap-server}]
-            (let [conn (ldap-connect ldap-server)]
-              (ldap/bind? conn (get-ldap-user-dn username config) password)))
-
 (defcommand get-public-key [name {:keys [config] :as ldap-server}]
             "Get a user's public SSH key"
             (let [conn (ldap-connect ldap-server)]

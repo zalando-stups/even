@@ -30,7 +30,7 @@
   (is (= {:username "a" :blub "b"} (ensure-username {:username "a"} {:blub "b"}))))
 
 (deftest test-request-access-wrong-network
-  (with-redefs [ldap/ldap-auth? (constantly true)
+  (with-redefs [
                 ldap/get-networks (constantly [{:cidr ["1.0.0.0/8"]}])
                 sql/create-access-request (constantly [])
                 sql/update-access-request! (constantly nil)]
@@ -38,7 +38,7 @@
            (request-access-with-auth {:username "user1"} {:hostname "2.3.4.5"} {} {} {})))))
 
 (deftest test-request-access-success
-  (with-redefs [ldap/ldap-auth? (constantly true)
+  (with-redefs [
                 sql/create-access-request (constantly [])
                 sql/update-access-request! (constantly nil)
                 ldap/get-networks (constantly [{:cidr ["10.0.0.0/8"]}])

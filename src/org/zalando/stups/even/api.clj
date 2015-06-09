@@ -4,7 +4,7 @@
     [clojure.tools.logging :as log]
     [schema.core :as s]
     [bugsbio.squirrel :as sq]
-    [org.zalando.stups.even.pubkey-provider.ldap :refer [get-public-key ldap-auth? get-networks]]
+    [org.zalando.stups.even.pubkey-provider.ldap :refer [get-public-key get-networks]]
     [org.zalando.stups.even.ssh :refer [execute-ssh]]
     [org.zalando.stups.even.sql :as sql]
     [clojure.data.codec.base64 :as b64]
