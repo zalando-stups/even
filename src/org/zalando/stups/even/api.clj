@@ -4,7 +4,6 @@
     [clojure.tools.logging :as log]
     [schema.core :as s]
     [bugsbio.squirrel :as sq]
-    [org.zalando.stups.even.pubkey-provider.ldap :refer [get-networks]]
     [org.zalando.stups.even.pubkey-provider.usersvc :refer [get-public-key]]
     [org.zalando.stups.even.ssh :refer [execute-ssh]]
     [org.zalando.stups.even.sql :as sql]
@@ -12,10 +11,12 @@
     [ring.util.http-response :as http]
     [ring.util.response :as ring]
     [org.zalando.stups.friboo.ring :as fring]
+    [org.zalando.stups.friboo.user :as u]
+    [org.zalando.stups.friboo.config :refer [require-config]]
     [clj-dns.core :as dns]
     [org.zalando.stups.even.net :refer [network-matches?]])
   (:import [clojure.lang ExceptionInfo]
-           [org.apache.commons.net.util SubnetUtils]))
+           [java.util.regex Pattern]))
 
 
 ; most validations are now already done by Swagger1st!
@@ -64,10 +65,11 @@
       (#(zipmap [:username :password] %))))
 
 (defn extract-auth
-  "Extract authorization from basic auth header"
+  "Extract UID and team membership from ring request"
   [req]
   (if-let [uid (get-in req [:tokeninfo "uid"])]
-    {:username uid}))
+    {:username uid
+     :teams (u/require-teams req)}))
 
 (defn resolve-hostname [hostname]
   (try
@@ -75,17 +77,23 @@
     (catch Exception e
       (throw (ex-info (str "Could not resolve hostname " hostname ": " (.getMessage e)) {:http-code 400})))))
 
+(def team-placeholder (Pattern/quote "{team}"))
+
+(defn get-allowed-hostnames [{:keys [username teams]} ring-request]
+  (let [hostname-template (require-config (:configuration ring-request) :allowed-hostname-template)]
+    (map #(.replaceAll hostname-template team-placeholder %) teams)))
+
 (defn request-access-with-auth
   "Request server access with provided auth credentials"
-  [auth {:keys [hostname username remote_host reason] :as access-request} ldap ssh db usersvc]
+  [auth {:keys [hostname username remote_host reason] :as access-request} ring-request ssh db usersvc]
   (log/info "Requesting access to " username "@" hostname ", remote-host=" remote_host ", reason=" reason)
   (let [ip (resolve-hostname hostname)
         auth-user (:username auth)
-        networks (get-networks auth-user ldap)
-        matching-networks (filter #(network-matches? % ip) networks)
+        allowed-hostnames (get-allowed-hostnames auth ring-request)
+        matching-hostnames (filter #(.matches hostname %) allowed-hostnames)
         handle (sql/from-sql (first (sql/cmd-create-access-request (sq/to-sql (assoc access-request :created-by auth-user)) {:connection db})))]
-    (if (empty? matching-networks)
-      (let [msg (str "Forbidden. Host " ip " is not in one of the allowed networks: " (print-str networks))]
+    (if (empty? matching-hostnames)
+      (let [msg (str "Forbidden. Host " ip " is not matching any allowed hostname: " (print-str allowed-hostnames))]
         (sql/update-access-request-status handle "DENIED" msg auth-user db)
         (http/forbidden msg))
       (let [result (execute-ssh hostname (str "grant-ssh-access --remote-host=" remote_host " " username) ssh)]
@@ -106,12 +114,12 @@
 
 (defn request-access
   "Request SSH access to a specific host"
-  [{:keys [request]} ring-request ldap ssh db usersvc]
+  [{:keys [request]} ring-request _ ssh db usersvc]
   (if-let [auth (extract-auth ring-request)]
     (request-access-with-auth auth (->> request
                                         validate-request
                                         (ensure-username auth)
-                                        ensure-request-keys) ldap ssh db usersvc)
+                                        ensure-request-keys) ring-request ssh db usersvc)
     (http/unauthorized "Unauthorized. Please authenticate with a valid OAuth2 token.")))
 
 (defn list-access-requests

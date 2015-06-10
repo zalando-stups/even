@@ -34,7 +34,7 @@
   [default-configuration]
   (System/setProperty "hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds" "15000")
   (let [configuration (config/load-configuration
-                        [:http :ldap :ssh :db :jobs]
+                        [:http :ldap :ssh :db :jobs :oauth2]
                         [api/default-http-configuration
                          default-ssh-configuration
                          default-ldap-configuration

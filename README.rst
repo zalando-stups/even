@@ -71,7 +71,7 @@ All configuration values can be passed encrypted when running on AWS (this is su
 .. code-block:: bash
 
     $ aws kms encrypt --key-id 123 --plaintext "secret" # encrypt with KMS
-    $ export LDAP_PASSWORD="aws:kms:<KMS-CIPHERTEXT-BLOB>"
+    $ export SSH_PRIVATE_KEY="aws:kms:<KMS-CIPHERTEXT-BLOB>"
 
 Configuration
 =============
@@ -80,22 +80,14 @@ The following configuration parameters can/should be passed via environment vari
 
 ``AWS_REGION_ID``
     Optional AWS region ID to use for KMS decryption (e.g. "eu-west-1").
+``CREDENTIALS_DIR``
+    Folder with OAuth2 application credentials (user.json and client.json) --- this is automatically set when running on the Taupage AMI.
+``HTTP_TEAM_SERVICE_URL``
+    URL of the Team Service to check team membership for authorization.
 ``HTTP_TOKENINFO_URL``
     URL to OAuth2 token info endpoint.
-``LDAP_BASE_DN``
-    DN of the user base.
-``LDAP_BIND_DN``
-    DN of the user to bind with.
-``LDAP_CONNECT_TIMEOUT``
-    LDAP connection timeout in milliseconds (default: 10s).
-``LDAP_GROUP_BASE_DN``
-    DN of the group base.
-``LDAP_HOST``
-    The LDAP server hostname to connect to.
-``LDAP_PASSWORD``
-    The user's bind password (can be encrypted with KMS).
-``LDAP_SSL``
-    Boolean flag (``true`` or ``false``) whether to use TLS for the LDAP connection.
+``HTTP_ALLOWED_HOSTNAME_TEMPLATE``
+    Regex template for the allowed hostname. "{team}" will be replaced by the user's team ID. Example: "odd-[a-z0-9-]*.{team}.example.org"
 ``OAUTH2_ACCESS_TOKEN_URL``
     URL to OAuth2 provider endpoint to get a new service access token.
 ``SSH_AGENT_FORWARDING``
@@ -107,7 +99,7 @@ The following configuration parameters can/should be passed via environment vari
 ``SSH_USER``
     The SSH username on remote servers (default: "granting-service").
 ``USERSVC_SSH_PUBLIC_KEY_URL_TEMPLATE``
-    URL template for the public SSH key endpoints ("{user}" will be replaced with the user's ID/username).
+    URL template for the public SSH key endpoints ("{user}" will be replaced with the user's ID/username). Example: "https://users.example.org/employees/{user}/ssh"
 
 Requesting SSH Access
 =====================
