@@ -58,7 +58,7 @@ To build a deployable artifact, use the ``uberjar`` task, that produces a single
 
 .. code-block:: bash
 
-    $ lein do uberjar, docker build
+    $ lein do uberjar, scm-source, docker build
 
 Running
 =======
