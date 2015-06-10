@@ -8,7 +8,6 @@
 
   :dependencies [[org.clojure/clojure "1.6.0"]
                  [org.zalando.stups/friboo "0.21.0"]
-                 [org.zalando.stups/tokens "0.7.0-SNAPSHOT"]
                  [metosin/ring-http-response "0.6.2"]
 
                  ; SSH client

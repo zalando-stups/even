@@ -38,7 +38,7 @@
 
 (defn serve-public-key
   "Return the user's public SSH key as plaintext"
-  [{:keys [name]} request _ _ _ usersvc]
+  [{:keys [name]} request _ _ usersvc]
   (if-let [ssh-key (get-public-key name usersvc)]
     (-> (ring/response ssh-key)
         (ring/header "Content-Type" "text/plain"))
@@ -51,17 +51,6 @@
   "Ensure that all access request keys exist in the given map"
   [request]
   (merge empty-access-request request))
-
-(defn parse-authorization
-  "Parse HTTP Basic Authorization header"
-  [authorization]
-  (-> authorization
-      (clojure.string/replace-first "Basic " "")
-      .getBytes
-      b64/decode
-      String.
-      (clojure.string/split #":" 2)
-      (#(zipmap [:username :password] %))))
 
 (defn extract-auth
   "Extract UID and team membership from ring request"
@@ -113,7 +102,7 @@
 
 (defn request-access
   "Request SSH access to a specific host"
-  [{:keys [request]} ring-request _ ssh db usersvc]
+  [{:keys [request]} ring-request ssh db usersvc]
   (if-let [auth (extract-auth ring-request)]
     (request-access-with-auth auth (->> request
                                         validate-request
@@ -123,7 +112,7 @@
 
 (defn list-access-requests
   "Return list of most recent access requests from database"
-  [parameters _ _ _ db _]
+  [parameters _ _ db _]
   (let [result (map sql/from-sql (sql/cmd-list-access-requests (sq/to-sql parameters) {:connection db}))]
     (-> (ring/response result)
         (fring/content-type-json))))

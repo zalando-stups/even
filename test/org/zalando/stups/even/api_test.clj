@@ -22,9 +22,6 @@
              {:username "my-user" :hostname "1.2.3.4" :reason "test"}
              ))
 
-(deftest test-parse-authorization
-  (is (= {:username "a" :password "b"} (parse-authorization "Basic YTpi"))))
-
 (deftest test-ensure-username
   (is (= {:username "a" :blub "b"} (ensure-username {:username "a"} {:blub "b"}))))
 
@@ -46,4 +43,4 @@
            (request-access-with-auth {:username "user1" :teams ["myteam"]} {:hostname "odd-eu-west-1.myteam.example.org" :username "user1"} {:configuration {:allowed-hostname-template "odd-.*.{team}.example.org"}} {} {} {})))))
 
 (deftest test-request-no-auth
-  (is (= {:status 401 :headers {} :body "Unauthorized. Please authenticate with a valid OAuth2 token."} (request-access {:request {}} {} {} {} {} {}))))
+  (is (= {:status 401 :headers {} :body "Unauthorized. Please authenticate with a valid OAuth2 token."} (request-access {:request {}} {} {} {} {}))))
