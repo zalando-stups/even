@@ -22,7 +22,7 @@
     (component/system-map
       :db (sql/map->DB {:configuration db})
       :tokens (oauth2/map->OAUth2TokenRefresher {:configuration oauth2
-                                                 :tokens        {:user-service-ro-api ["uid"]}})
+                                                 :tokens        {"user-service" ["uid"]}})
       :ldap (new-ldap ldap)
       :usersvc (using (new-usersvc usersvc) [:tokens])
       :ssh (new-ssh ssh)
@@ -34,7 +34,7 @@
   [default-configuration]
   (System/setProperty "hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds" "15000")
   (let [configuration (config/load-configuration
-                        [:http :ldap :ssh :db :jobs :oauth2]
+                        [:http :ldap :ssh :db :jobs :oauth2 :usersvc]
                         [api/default-http-configuration
                          default-ssh-configuration
                          default-ldap-configuration

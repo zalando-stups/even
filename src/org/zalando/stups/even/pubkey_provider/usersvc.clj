@@ -13,11 +13,10 @@
 
 (defcommand get-public-key [name {:keys [config tokens] :as usersvc}]
             "Get a user's public SSH key"
-            (:body (client/get (.replaceAll (:ssh-public-key-url-template config) user-placeholder name)
-                               {:oauth-token (oauth2/access-token :user-service-ro-api tokens)
-                                :as          :json})))
-
-
+            (let [template (config/require-config config :ssh-public-key-url-template)
+                  url (.replaceAll template user-placeholder name)]
+              (:body (client/get url
+                                 {:oauth-token (oauth2/access-token "user-service" tokens)}))))
 
 (defn ^Usersvc new-usersvc [config]
   (log/info "Configuring User Service with" (config/mask config))
