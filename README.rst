@@ -18,11 +18,11 @@ Idea
 
 Users can request temporary SSH access to servers by calling the "SSH Access Granting Service" which puts their public SSH key in place.
 
-* The user needs to authenticate against the service (currently checked via LDAP bind)
+* The user needs to authenticate against the service (via OAuth2 access token)
 * The user requests temporary SSH access for a certain host (``POST /access-requests``)
-* The service checks whether the user is allowed to gain access to the specified host by checking if the host's IP is included in one of the IP networks configured on the user's LDAP roles (using the ``ipHostNumber`` LDAP attribute)
+* The service checks whether the user is allowed to gain access to the specified host by checking if the hostname follows the given pattern (``HTTP_ALLOWED_HOSTNAME_TEMPLATE``)
 * The service instructs the host to grant access via a SSH forced command script
-* The forced command script downloads the user's public SSH key from the service (the public SSH key is read from LDAP)
+* The forced command script downloads the user's public SSH key from the service (the public SSH key is read from the HTTP endpoint given by ``USERSVC_SSH_PUBLIC_KEY_URL_TEMPLATE``)
 * The forced command script configures the ``/home/<user>/.ssh/authorized_keys`` file accordingly
 
 .. image:: https://raw.githubusercontent.com/zalando-stups/even/master/docs/_static/grant-ssh-access-flow.png
@@ -37,6 +37,9 @@ To start a web server for the application, run:
 
 .. code-block:: bash
 
+    $ export CREDENTIALS_DIR=. # to make "tokens" library happy
+    $ export OAUTH2_ACCESS_TOKENS=user-service=abc123-456 # fixed token for local development
+    $ export .. # see configuration section below
     $ lein repl
     => (go)
 
@@ -46,7 +49,7 @@ Requesting access to server "127.0.0.1" for user "jdoe":
 
 .. code-block:: bash
 
-    $ curl -u jdoe -XPOST -H Content-Type:application/json --data '{"hostname": "127.0.0.1", "reason": "test"}' http://localhost:8080/access-requests
+    $ curl -XPOST -H Content-Type:application/json -H 'Authorization: Bearer mytoken' --data '{"hostname": "127.0.0.1", "reason": "test"}' http://localhost:8080/access-requests
 
 Building
 ========
@@ -64,7 +67,7 @@ Running the previously built Docker image and passing configuration via environm
 
 .. code-block:: bash
 
-    $ docker run -p 8080:8080 -e AWS_REGION_ID=eu-west-1 -e LDAP_HOST=ldap.example.org -e LDAP_SSL=true -e LDAP_BASE_DN=ou=users,dc=example,dc=org -e LDAP_GROUP_BASE_DN=ou=groups,dc=example,dc=org -e LDAP_BIND_DN=uid=ssh-key-reader,ou=users,dc=example,dc=org -e LDAP_PASSWORD="$LDAP_PASSWORD" -e SSH_PRIVATE_KEY="$SSH_PRIVATE_KEY" stups/even
+    $ docker run -p 8080:8080 -e AWS_REGION_ID=eu-west-1 -e CREDENTIALS_DIR=/ -e HTTP_TEAM_SERVICE_URL=https://teams.example.org -e HTTP_TOKENINFO_URL=https://oauth2.example.org/tokeninfo -e HTTP_ALLOWED_HOSTNAME_TEMPLATE="odd-[a-z0-9-]*.{team}.example.org" -e OAUTH2_ACCESS_TOKEN_URL=https://oauth2.example.org/access_token -e USERSVC_SSH_PUBLIC_KEY_URL_TEMPLATE=https://users.example.org/{user}/ssh -e SSH_PRIVATE_KEY="$SSH_PRIVATE_KEY" stups/even
 
 All configuration values can be passed encrypted when running on AWS (this is supported by the underlying Friboo_ library):
 
