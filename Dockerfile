@@ -6,5 +6,5 @@ COPY target/scm-source.json /
 
 EXPOSE 8080
 
-CMD java $(java-dynamic-memory-opts) -jar /even.jar
+CMD java $(java-dynamic-memory-opts) -Dhystrix.command.default.execution.isolation.thread.timeoutInMilliseconds=15000 -jar /even.jar
 

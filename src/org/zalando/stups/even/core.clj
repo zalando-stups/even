@@ -30,7 +30,6 @@
 (defn run
   "Initializes and starts the whole system."
   [default-configuration]
-  (System/setProperty "hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds" "15000")
   (let [configuration (config/load-configuration
                         [:http :ssh :db :jobs :oauth2 :usersvc]
                         [api/default-http-configuration
