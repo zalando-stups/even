@@ -20,8 +20,7 @@
 
                  [org.clojure/data.json "0.2.6"]
                  [org.clojure/data.codec "0.1.0"]
-                 [com.brweber2/clj-dns "0.0.2"]
-                 [commons-net/commons-net "3.3"]]
+                 [com.brweber2/clj-dns "0.0.2"]]
 
   :main ^:skip-aot org.zalando.stups.even.core
   :uberjar-name "even.jar"

@@ -13,8 +13,7 @@
     [org.zalando.stups.friboo.ring :as fring]
     [org.zalando.stups.friboo.user :as u]
     [org.zalando.stups.friboo.config :refer [require-config]]
-    [clj-dns.core :as dns]
-    [org.zalando.stups.even.net :refer [network-matches?]])
+    [clj-dns.core :as dns])
   (:import [clojure.lang ExceptionInfo]
            [java.util.regex Pattern]))
 
