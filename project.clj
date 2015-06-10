@@ -10,8 +10,7 @@
                  [org.zalando.stups/friboo "0.21.0"]
                  [org.zalando.stups/tokens "0.7.0-SNAPSHOT"]
                  [metosin/ring-http-response "0.6.2"]
-                 ; LDAP
-                 [org.clojars.pntblnk/clj-ldap "0.0.9"]
+
                  ; SSH client
                  [clj-ssh "0.5.11"]
                  [amazonica "0.3.23"]

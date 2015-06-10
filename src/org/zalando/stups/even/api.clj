@@ -31,7 +31,7 @@
    (s/optional-key :lifetime_minutes) (s/both s/Int (s/pred valid-lifetime))
    })
 
-(def-http-component API "api/even-api.yaml" [ldap ssh db usersvc])
+(def-http-component API "api/even-api.yaml" [ssh db usersvc])
 
 (def default-http-configuration {:http-port 8080})
 

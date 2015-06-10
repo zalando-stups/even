@@ -9,7 +9,6 @@
             [org.zalando.stups.even.api :as api]
             [org.zalando.stups.friboo.system.oauth2 :as oauth2]
             [org.zalando.stups.even.job :as job]
-            [org.zalando.stups.even.pubkey-provider.ldap :refer [new-ldap default-ldap-configuration]]
             [org.zalando.stups.even.pubkey-provider.usersvc :refer [new-usersvc]]
             [org.zalando.stups.even.ssh :refer [new-ssh default-ssh-configuration]]
             ))
@@ -18,15 +17,14 @@
   "Returns a new instance of the whole application"
   [config]
 
-  (let [{:keys [ldap http ssh db jobs oauth2 usersvc]} config]
+  (let [{:keys [http ssh db jobs oauth2 usersvc]} config]
     (component/system-map
       :db (sql/map->DB {:configuration db})
       :tokens (oauth2/map->OAUth2TokenRefresher {:configuration oauth2
                                                  :tokens        {"user-service" ["uid"]}})
-      :ldap (new-ldap ldap)
       :usersvc (using (new-usersvc usersvc) [:tokens])
       :ssh (new-ssh ssh)
-      :api (using (api/map->API {:configuration http}) [:ldap :ssh :db :usersvc])
+      :api (using (api/map->API {:configuration http}) [:ssh :db :usersvc])
       :jobs (using (job/map->Jobs {:configuration jobs}) [:ssh :db]))))
 
 (defn run
@@ -34,10 +32,9 @@
   [default-configuration]
   (System/setProperty "hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds" "15000")
   (let [configuration (config/load-configuration
-                        [:http :ldap :ssh :db :jobs :oauth2 :usersvc]
+                        [:http :ssh :db :jobs :oauth2 :usersvc]
                         [api/default-http-configuration
                          default-ssh-configuration
-                         default-ldap-configuration
                          sql/default-db-configuration
                          job/default-configuration
                          default-configuration])

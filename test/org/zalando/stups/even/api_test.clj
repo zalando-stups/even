@@ -3,7 +3,6 @@
   (:require [clojure.test :refer :all]
             [org.zalando.stups.even.api :refer :all]
             [schema.core :as s]
-            [org.zalando.stups.even.pubkey-provider.ldap :as ldap]
             [org.zalando.stups.even.ssh :as ssh]
             [org.zalando.stups.even.sql :as sql]
             ))
@@ -31,20 +30,20 @@
 
 (deftest test-request-access-wrong-network
   (with-redefs [
-                ldap/get-networks (constantly [{:cidr ["1.0.0.0/8"]}])
+                get-allowed-hostnames (constantly ["odd-.*.myteam.example.org"])
                 sql/create-access-request (constantly [])
                 sql/update-access-request! (constantly nil)]
-    (is (= {:status 403 :headers {} :body "Forbidden. Host /2.3.4.5 is not in one of the allowed networks: [{:cidr [1.0.0.0/8]}]"}
-           (request-access-with-auth {:username "user1"} {:hostname "2.3.4.5"} {} {} {} {})))))
+    (is (= {:status 403 :headers {} :body "Forbidden. Host /2.3.4.5 is not matching any allowed hostname: [odd-.*.myteam.example.org]"}
+           (request-access-with-auth {:username "user1" :teams ["myteam"]} {:hostname "2.3.4.5"} {:configuration {:allowed-hostname-template "odd-.*.{team}.example.org"}} {} {} {})))))
 
 (deftest test-request-access-success
   (with-redefs [
                 sql/create-access-request (constantly [])
                 sql/update-access-request! (constantly nil)
-                ldap/get-networks (constantly [{:cidr ["10.0.0.0/8"]}])
+                resolve-hostname (constantly "odd-eu-west-1.myteam.example.org/127.0.0.1")
                 ssh/execute-ssh (constantly {:exit 0})]
-    (is (= {:status 200 :headers {} :body "Access to host /10.1.2.3 for user user1 was granted."}
-           (request-access-with-auth {:username "user1"} {:hostname "10.1.2.3" :username "user1"} {} {} {} {})))))
+    (is (= {:status 200 :headers {} :body "Access to host odd-eu-west-1.myteam.example.org/127.0.0.1 for user user1 was granted."}
+           (request-access-with-auth {:username "user1" :teams ["myteam"]} {:hostname "odd-eu-west-1.myteam.example.org" :username "user1"} {:configuration {:allowed-hostname-template "odd-.*.{team}.example.org"}} {} {} {})))))
 
 (deftest test-request-no-auth
-  (is (= {:status 401 :headers {} :body "Unauthorized. Please authenticate with username and password."} (request-access {:request {}} {} {} {} {} {}))))
+  (is (= {:status 401 :headers {} :body "Unauthorized. Please authenticate with a valid OAuth2 token."} (request-access {:request {}} {} {} {} {} {}))))
