@@ -12,12 +12,11 @@
 
                  ; SSH client
                  [clj-ssh "0.5.11"]
-                 [amazonica "0.3.23"]
+                 [amazonica "0.3.24"]
 
                  [yesql "0.5.0-rc3"]
                  [squirrel "0.1.1"]
 
-                 [org.clojure/data.json "0.2.6"]
                  [org.clojure/data.codec "0.1.0"]
                  [com.brweber2/clj-dns "0.0.2"]]
 
@@ -25,7 +24,7 @@
   :uberjar-name "even.jar"
 
   :plugins [[lein-environ "1.0.0"]
-            [lein-cloverage "1.0.2"]
+            [lein-cloverage "1.0.6"]
             [org.zalando.stups/lein-scm-source "0.2.0"]
             [io.sarnowski/lein-docker "1.1.0"]]
 
