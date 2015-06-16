@@ -7,7 +7,7 @@
   :min-lein-version "2.0.0"
 
   :dependencies [[org.clojure/clojure "1.6.0"]
-                 [org.zalando.stups/friboo "0.21.0"]
+                 [org.zalando.stups/friboo "0.22.0"]
                  [metosin/ring-http-response "0.6.2"]
 
                  ; SSH client
