@@ -1,0 +1,64 @@
+# Example Senza definition for even SSH access granting service
+# see http://docs.stups.io/en/latest/installation/service-deployments.html
+SenzaInfo:
+  StackName: even
+  # optional SNS topic to send notification mails to
+  OperatorTopicId: stups-ops
+  Parameters:
+  - ImageVersion:
+      Description: Docker image version of even.
+SenzaComponents:
+
+- Configuration:
+    Type: Senza::StupsAutoConfiguration
+
+- AppServer:
+    Type: Senza::TaupageAutoScalingGroup
+    ElasticLoadBalancer: AppLoadBalancer
+    InstanceType: t2.micro
+    SecurityGroups:
+      - app-even
+      # optional additional security group for Turbine to connect to port 7979
+      - hystrix-streams
+    IamRoles: [app-even]
+    TaupageConfig:
+      application_version: "{{Arguments.ImageVersion}}"
+      ports:
+        8080: 8080
+        7979: 7979
+      runtime: Docker
+      source: pierone.stups.example.org/stups/even:{{Arguments.ImageVersion}}
+      # mint bucket for OAuth credential distribution
+      mint_bucket: exampleorg-stups-mint-123456789123-eu-west-1
+      environment:
+        HTTP_ALLOWED_HOSTNAME_TEMPLATE: "odd-[a-z0-9-]*.{team}.example.org"
+        # OAuth2 tokeninfo endpoint
+        HTTP_TOKENINFO_URL: "https://auth.example.org/oauth2/tokeninfo"
+        # Team Service endpoint to check user team membership
+        HTTP_TEAM_SERVICE_URL: "https://teams.example.org"
+        # optional S3 bucket name to log change operations to
+        HTTP_AUDIT_LOGS_BUCKET: "exampleorg-stups-audit-logs-eu-west-1"
+        OAUTH2_ACCESS_TOKEN_URL: "https://auth.exampleorg.com/oauth2/access_token?realm=services"
+        PGSSLMODE: verify-full
+        DB_SUBNAME: "//even.abc123.eu-west-1.rds.amazonaws.com:5432/even?ssl=true"
+        DB_USER: postgres
+        DB_PASSWORD: mypass
+        SSH_PRIVATE_KEY: "aws:kms:.."
+        USERSVC_SSH_PUBLIC_KEY_URL_TEMPLATE: "https://users.example.org/employees/{user}/ssh"
+      # optional Scalyr account key to stream application logs to
+      scalyr_account_key: abc123xyz
+      # optional etcd DNS domain for Hystrix/Turbine
+      etcd_discovery_domain: main.stups.example.org
+      # optional special entry for Turbine discovery
+      hystrix: ":7979/hystrix.stream"
+    AutoScaling:
+      Minimum: 2
+      Maximum: 8
+      MetricType: CPU
+      ScaleUpThreshold: 70
+      ScaleDownThreshold: 40
+- AppLoadBalancer:
+    Type: Senza::WeightedDnsElasticLoadBalancer
+    HTTPPort: 8080
+    HealthCheckPath: /.well-known/health
+    SecurityGroups: [app-even-lb]
