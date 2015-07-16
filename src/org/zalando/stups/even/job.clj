@@ -1,5 +1,5 @@
 (ns org.zalando.stups.even.job
-  (:require [org.zalando.stups.friboo.system.cron :refer [def-cron-component]]
+  (:require [org.zalando.stups.friboo.system.cron :refer [def-cron-component job]]
             [org.zalando.stups.friboo.log :as log]
             [org.zalando.stups.even.sql :as sql]
             [org.zalando.stups.even.ssh :refer [execute-ssh]]
@@ -85,6 +85,6 @@
   Jobs [ssh db]
 
   (let [{:keys [every-ms initial-delay-ms]} configuration]
-    (every every-ms #(run-revoke-expired-access-requests ssh db) pool
+    (every every-ms (job run-revoke-expired-access-requests ssh db) pool
            :initial-delay initial-delay-ms
            :desc "revoke expired access requests")))
