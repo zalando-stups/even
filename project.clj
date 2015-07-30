@@ -6,7 +6,7 @@
   :scm {:url "git@github.com:zalando-stups/even"}
   :min-lein-version "2.0.0"
 
-  :dependencies [[org.zalando.stups/friboo "0.31.0"]
+  :dependencies [[org.zalando.stups/friboo "0.32.0"]
                  [metosin/ring-http-response "0.6.2"]
                  ; LDAP
                  [org.clojars.pntblnk/clj-ldap "0.0.9"]
