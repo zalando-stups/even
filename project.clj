@@ -1,4 +1,4 @@
-(defproject org.zalando.stups/even "0.13.0"
+(defproject org.zalando.stups/even "0.14.0-SNAPSHOT"
   :description "SSH access granting service"
   :url "https://github.com/zalando-stups/even"
   :license {:name "Apache License"
