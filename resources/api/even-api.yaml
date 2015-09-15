@@ -46,6 +46,17 @@ definitions:
         maximum: 525600 # 60*24*365 = 1 year
 
 paths:
+
+  '/':
+    get:
+      summary: Application root
+      operationId: org.zalando.stups.friboo.system.http/redirect-to-swagger-ui
+      security:
+        - oauth2: [uid]
+      responses:
+        default:
+          description: "Redirects to /ui/"
+
   /public-keys/{name}/sshkey.pub:
     get:
       summary: Download public SSH key

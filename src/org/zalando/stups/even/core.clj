@@ -1,9 +1,9 @@
 (ns org.zalando.stups.even.core
   (:gen-class)
-  (:require [com.stuartsierra.component :as component :refer [using]]
+  (:require [com.stuartsierra.component :refer [using]]
             [environ.core :refer [env]]
             [org.zalando.stups.friboo.config :as config]
-            [org.zalando.stups.friboo.system :as system]
+            [org.zalando.stups.friboo.system :as system :refer [http-system-map default-http-namespaces-and]]
             [org.zalando.stups.friboo.log :as log]
             [org.zalando.stups.even.sql :as sql]
             [org.zalando.stups.even.api :as api]
@@ -15,23 +15,21 @@
 
 (defn new-system
   "Returns a new instance of the whole application"
-  [config]
-
-  (let [{:keys [http ssh db jobs oauth2 usersvc]} config]
-    (component/system-map
-      :db (sql/map->DB {:configuration db})
-      :tokens (oauth2/map->OAUth2TokenRefresher {:configuration oauth2
-                                                 :tokens        {"user-service" ["uid"]}})
-      :usersvc (using (new-usersvc usersvc) [:tokens])
-      :ssh (new-ssh ssh)
-      :api (using (api/map->API {:configuration http}) [:ssh :db :usersvc])
-      :jobs (using (job/map->Jobs {:configuration jobs}) [:ssh :db]))))
+  [{:keys [ssh db jobs oauth2 usersvc] :as config}]
+  (http-system-map config
+                   api/map->API [:ssh :db :usersvc]
+                   :db (sql/map->DB {:configuration db})
+                   :tokens (oauth2/map->OAUth2TokenRefresher {:configuration oauth2
+                                                              :tokens        {"user-service" ["uid"]}})
+                   :usersvc (using (new-usersvc usersvc) [:tokens])
+                   :ssh (new-ssh ssh)
+                   :jobs (using (job/map->Jobs {:configuration jobs}) [:ssh :db])))
 
 (defn run
   "Initializes and starts the whole system."
   [default-configuration]
   (let [configuration (config/load-configuration
-                        [:http :ssh :db :jobs :oauth2 :usersvc]
+                        (default-http-namespaces-and :ssh :db :jobs :oauth2 :usersvc)
                         [api/default-http-configuration
                          default-ssh-configuration
                          sql/default-db-configuration

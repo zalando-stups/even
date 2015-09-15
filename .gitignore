@@ -4,6 +4,7 @@ target/
 .lein*
 profiles.clj
 .idea
+*.iml
 local-*
 .nrepl*
 scm-source.json
