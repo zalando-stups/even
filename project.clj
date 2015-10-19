@@ -9,8 +9,6 @@
   :dependencies [[org.clojure/clojure "1.7.0"]
                  [org.zalando.stups/friboo "1.2.0"]
                  [metosin/ring-http-response "0.6.5"]
-                 ; LDAP
-                 [org.clojars.pntblnk/clj-ldap "0.0.9"]
                  ; SSH client
                  [clj-ssh "0.5.11"]
                  [amazonica "0.3.33"]
