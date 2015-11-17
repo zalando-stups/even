@@ -156,6 +156,20 @@ def write_welcome_message(home_dir: Path):
     subprocess.check_call(['sudo', 'sh', '-c', command])
 
 
+def is_dir_writable(home_dir: Path):
+    filepath = home_dir / '.testfile'
+    try:
+        os.remove(filepath)
+        filehandle = open(filepath, 'w')
+        filehandle.write('Test')
+        filehandle.close()
+        os.remove(filepath)
+        return True
+    except IOError:
+        sys.exit('Unable to write to file ' + filepath)
+        return False
+
+
 def is_remote_host_allowed(remote_host: str):
     config = get_config()
     allowed_networks = config.get('allowed_remote_networks', [])
@@ -177,6 +191,10 @@ def grant_ssh_access(args):
 
     try:
         pwd.getpwnam(user_name)
+        if is_dir_writable is False:
+            user_name = 'root'
+            home_dir = '/run/user/root'
+
     except:
         config = get_config()
         subprocess.check_call(['sudo', 'useradd',
