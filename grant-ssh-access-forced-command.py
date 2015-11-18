@@ -160,9 +160,8 @@ def is_dir_writable(home_dir: Path):
     filepath = home_dir / '.testfile'
     try:
         os.remove(filepath)
-        filehandle = open(filepath, 'w')
-        filehandle.write('Test')
-        filehandle.close()
+        with open(filepath, 'w') as filehandle:
+            filehandle.write('Test')
         os.remove(filepath)
         return True
     except IOError:
@@ -191,9 +190,9 @@ def grant_ssh_access(args):
 
     try:
         pwd.getpwnam(user_name)
+        is_dir_writable()
         if is_dir_writable is False:
             user_name = 'root'
-            home_dir = '/run/user/root'
 
     except:
         config = get_config()
