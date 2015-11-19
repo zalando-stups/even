@@ -141,6 +141,7 @@ def generate_authorized_keys(user_name: str, keys_file: Path, pubkey: str, force
     subprocess.check_call(['sudo', 'chown', user_name, str(ssh_dir)])
     subprocess.check_call(['sudo', 'chmod', '0700', str(ssh_dir)])
 
+    # NOTE: we write the temporary SSH public key into tmpfs (shm) to also work in "disk full" situations
     with tempfile.NamedTemporaryFile(suffix='{name}-sshkey.pub'.format(name=user_name), dir='/run/shm') as fd:
         fd.write(add_our_mark(add_forced_command(pubkey, forced_command)).encode('utf-8'))
         fd.flush()
@@ -190,6 +191,7 @@ def grant_ssh_access(args):
                                    '--comment', USER_COMMENT.format(date=date()).replace(':', '-'),
                                    user_name])
         except:
+            # out of disk space? try to continue anyway
             pass
 
     try:
@@ -197,6 +199,8 @@ def grant_ssh_access(args):
         generate_authorized_keys(user_name, keys_file, pubkey)
         write_welcome_message(keys_file.parent.parent)
     except:
+        # out of disk space? use fallback and allow login via root
+        # /root/.ssh/ must be mounted as tmpfs (memory disk) for this to work!
         generate_authorized_keys('root', Path('/root/.ssh/authorized_keys'), pubkey)
 
     if args.remote_host:
