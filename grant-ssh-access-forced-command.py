@@ -156,19 +156,6 @@ def write_welcome_message(home_dir: Path):
     subprocess.check_call(['sudo', 'sh', '-c', command])
 
 
-def is_dir_writable(home_dir: Path):
-    filepath = home_dir / '.testfile'
-    try:
-        os.remove(filepath)
-        with open(filepath, 'w') as filehandle:
-            filehandle.write('Test')
-        os.remove(filepath)
-        return True
-    except IOError:
-        sys.exit('Unable to write to file ' + filepath)
-        return False
-
-
 def is_remote_host_allowed(remote_host: str):
     config = get_config()
     allowed_networks = config.get('allowed_remote_networks', [])
