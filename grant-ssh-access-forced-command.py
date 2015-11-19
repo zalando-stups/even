@@ -141,7 +141,7 @@ def generate_authorized_keys(user_name: str, keys_file: Path, pubkey: str, force
     subprocess.check_call(['sudo', 'chown', user_name, str(ssh_dir)])
     subprocess.check_call(['sudo', 'chmod', '0700', str(ssh_dir)])
 
-    with tempfile.NamedTemporaryFile(suffix='{name}-sshkey.pub'.format(name=user_name)) as fd:
+    with tempfile.NamedTemporaryFile(suffix='{name}-sshkey.pub'.format(name=user_name), dir='/run/shm') as fd:
         fd.write(add_our_mark(add_forced_command(pubkey, forced_command)).encode('utf-8'))
         fd.flush()
         shell_template = 'cat {temp} > {keys_file} && chown {name} {keys_file} && chmod 600 {keys_file}'
@@ -190,25 +190,27 @@ def grant_ssh_access(args):
 
     try:
         pwd.getpwnam(user_name)
-        is_dir_writable()
-        if is_dir_writable is False:
-            user_name = 'root'
 
     except:
         config = get_config()
-        subprocess.check_call(['sudo', 'useradd',
-                               '--user-group',
-                               '--groups', ','.join(config.get('user_groups', ['adm'])),
-                               '--shell', DEFAULT_SHELL,
-                               '--create-home',
-                               # colon is not allowed in the comment field..
-                               '--comment', USER_COMMENT.format(date=date()).replace(':', '-'),
-                               user_name])
+        try:
+            subprocess.check_call(['sudo', 'useradd',
+                                   '--user-group',
+                                   '--groups', ','.join(config.get('user_groups', ['adm'])),
+                                   '--shell', DEFAULT_SHELL,
+                                   '--create-home',
+                                   # colon is not allowed in the comment field..
+                                   '--comment', USER_COMMENT.format(date=date()).replace(':', '-'),
+                                   user_name])
+        except:
+            pass
 
-    keys_file = get_keys_file_path(user_name)
-
-    generate_authorized_keys(user_name, keys_file, pubkey)
-    write_welcome_message(keys_file.parent.parent)
+    try:
+        keys_file = get_keys_file_path(user_name)
+        generate_authorized_keys(user_name, keys_file, pubkey)
+        write_welcome_message(keys_file.parent.parent)
+    except:
+        generate_authorized_keys('root', Path('/root/.ssh/authorized_keys'), pubkey)
 
     if args.remote_host:
         if not is_remote_host_allowed(args.remote_host):
