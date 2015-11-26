@@ -7,13 +7,12 @@
   :min-lein-version "2.0.0"
 
   :dependencies [[org.clojure/clojure "1.7.0"]
-                 [org.zalando.stups/friboo "1.4.1"]
+                 [org.zalando.stups/friboo "1.5.3"]
                  [metosin/ring-http-response "0.6.5"]
                  ; SSH client
                  [clj-ssh "0.5.11"]
-                 [amazonica "0.3.33"]
 
-                 [yesql "0.5.0"]
+                 [yesql "0.5.1"]
                  [squirrel "0.1.2"]
 
                  [org.clojure/data.codec "0.1.0"]

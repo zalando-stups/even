@@ -1,4 +1,4 @@
-FROM zalando/openjdk:8u66-b17-1-2
+FROM zalando/openjdk:8u66-b17-1-3
 
 MAINTAINER Zalando SE
 
@@ -7,5 +7,5 @@ COPY target/scm-source.json /
 
 EXPOSE 8080
 
-CMD java $(java-dynamic-memory-opts) $(appdynamics-agent) -Dhystrix.command.default.execution.isolation.thread.timeoutInMilliseconds=15000 -jar /even.jar
+CMD java $JAVA_OPTS $(java-dynamic-memory-opts) $(appdynamics-agent) -jar /even.jar
 
