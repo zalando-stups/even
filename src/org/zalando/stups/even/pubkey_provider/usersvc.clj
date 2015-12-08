@@ -62,7 +62,7 @@
     (catch Throwable ex
       (if (:cache-bucket config)
           (do
-              (log/error ex "Failed to get SSH public key from HTTP service, falling back to S3 cache bucket")
+              (log/warn "Failed to get SSH public key from HTTP service, falling back to S3 cache bucket:" (.getMessage ex) (when (.getCause ex) (.getMessage (.getCause ex))))
               (get-public-key-from-s3 name usersvc))
           (throw ex)))))
 
