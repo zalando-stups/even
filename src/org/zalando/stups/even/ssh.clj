@@ -1,6 +1,7 @@
 (ns org.zalando.stups.even.ssh
   (:require [clojure.tools.logging :as log]
             [clj-ssh.ssh :refer :all]
+            [clojure.java.io :as io]
             [org.zalando.stups.friboo.config :as config]
             [com.netflix.hystrix.core :refer [defcommand]])
   (:import
@@ -40,8 +41,9 @@
   [hostname command {{:keys [user private-key port agent-forwarding timeout]} :config}]
   (log/info "ssh" user "@" hostname command)
   (let [agent (ssh-agent {:use-system-ssh-agent false
-                          :known-hosts-path     "/dev/null"})]
-    (add-identity agent {:private-key-path (get-private-key-path private-key)})
+                          :known-hosts-path     "/dev/null"})
+        private-key-path (get-private-key-path private-key)]
+    (add-identity agent {:private-key-path private-key-path})
     (let [session (session agent hostname {:username                 user
                                            :port                     port
                                            :strict-host-key-checking :no})]
@@ -53,7 +55,9 @@
                            (log/info "Result: " result)
                            result))
         (catch Exception e
-          {:exit 255 :err (.getMessage e) :out ""})))))
+          {:exit 255 :err (.getMessage e) :out ""})
+        (finally
+          (io/delete-file private-key-path true))))))
 
 
 (defn ^Ssh new-ssh [config]
