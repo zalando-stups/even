@@ -236,7 +236,7 @@ def is_generated_by_us(keys_file):
 def kill_all_processes(user_name: str):
     '''try to write session before killing all processes'''
     subprocess.call(['sudo', 'killall', '-u', user_name, '-w'])
-    time.sleep(5)
+    time.sleep(2)
     subprocess.call(['sudo', 'killall', '-KILL', '-u', user_name, '-w'])
 
 
