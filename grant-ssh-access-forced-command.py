@@ -143,7 +143,7 @@ def generate_authorized_keys(user_name: str, keys_file: Path, pubkey: str, force
     subprocess.check_call(['sudo', 'chmod', '0700', str(ssh_dir)])
 
     # NOTE: we write the temporary SSH public key into tmpfs (shm) to also work in "disk full" situations
-    with tempfile.NamedTemporaryFile(suffix='{name}-sshkey.pub'.format(name=user_name), dir='/run/shm') as fd:
+    with tempfile.NamedTemporaryFile(suffix='{name}-sshkey.pub'.format(name=user_name), dir='/dev/shm') as fd:
         fd.write(add_our_mark(add_forced_command(pubkey, forced_command)).encode('utf-8'))
         fd.flush()
         shell_template = 'cat {temp} > {keys_file} && chown {name} {keys_file} && chmod 600 {keys_file}'
