@@ -115,7 +115,7 @@ def add_our_mark(pubkey):
 
 def add_forced_command(pubkey, forced_command):
     if forced_command:
-        return 'command="{}" {}'.format(forced_command, pubkey)
+        return 'command="{}",no-port-forwarding,no-X11-forwarding,no-agent-forwarding,no-pty {}'.format(forced_command, pubkey)
     else:
         return pubkey
 
