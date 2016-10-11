@@ -107,7 +107,6 @@
 (defn validate-request
   "Validate the given access request"
   [request]
-  (prn "scheisse 23")
   (try (s/validate AccessRequest request)
        (catch ExceptionInfo e
          (throw (ex-info (str "Invalid request: " (.getMessage e)) {:http-code 400})))))

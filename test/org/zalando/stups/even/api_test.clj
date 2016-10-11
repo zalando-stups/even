@@ -2,9 +2,12 @@
 
   (:require [clojure.test :refer :all]
             [org.zalando.stups.even.api :refer :all]
+            [midje.sweet :refer :all]
             [schema.core :as s]
+            [clojure.string :as str]
             [org.zalando.stups.even.ssh :as ssh]
             [org.zalando.stups.even.sql :as sql]
+            [org.zalando.stups.even.api :as api]
             ))
 
 (deftest test-access-request-validation-fails
@@ -31,7 +34,15 @@
                 sql/create-access-request (constantly [])
                 sql/update-access-request! (constantly nil)]
     (is (= {:status 403 :headers {} :body "Forbidden. Host /2.3.4.5 is not matching any allowed hostname: [odd-.*.myteam.example.org]"}
-           (request-access-with-auth {:username "user1" :teams ["myteam"]} {:hostname "2.3.4.5"} {:configuration {:allowed-hostname-template "odd-.*.{team}.example.org"}} {} {} {})))))
+           (request-access-with-auth
+             {:username "user1" :teams ["myteam"]}
+             {:hostname "2.3.4.5"}
+             {:configuration {:allowed-hostname-template "odd-.*.{team}.example.org"}}
+             {}
+             {}
+             {}
+             (constantly nil)
+             )))))
 
 (deftest test-request-access-success
   (with-redefs [
@@ -40,7 +51,25 @@
                 resolve-hostname (constantly "odd-eu-west-1.myteam.example.org/127.0.0.1")
                 ssh/execute-ssh (constantly {:exit 0})]
     (is (= {:status 200 :headers {} :body "Access to host odd-eu-west-1.myteam.example.org/127.0.0.1 for user user1 was granted."}
-           (request-access-with-auth {:username "user1" :teams ["myteam"]} {:hostname "odd-eu-west-1.myteam.example.org" :username "user1"} {:configuration {:allowed-hostname-template "odd-.*.{team}.example.org"}} {} {} {})))))
+           (request-access-with-auth {:username "user1" :teams ["myteam"]} {:hostname "odd-eu-west-1.myteam.example.org" :username "user1"} {:configuration {:allowed-hostname-template "odd-.*.{team}.example.org"}} {} {} {} (constantly nil))))))
 
 (deftest test-request-no-auth
-  (is (= {:status 401 :headers {} :body "Unauthorized. Please authenticate with a valid OAuth2 token."} (request-access {:request {}} {} {} {} {}))))
+  (is (= {:status 401 :headers {} :body "Unauthorized. Please authenticate with a valid OAuth2 token."} (request-access {:request {}} {} {} {} {} (constantly nil)))))
+
+(deftest ^:unit testblub
+  (fact "log-fn is being called on successfull handling of ssh access request"
+    (api/request-access-with-auth .auth. .access-request. .ring-request. .ssh. .db. .usersvc. .log-fn.) => nil
+       (provided
+         .auth.           => {}
+         .access-request. => {}
+         .ring-request.   => {}
+         .ssh.            => {}
+         .db.             => {}
+         .usersvc.        => {}
+         .log-fn.         => {}
+          (api/resolve-hostname anything => "123.2.3.4")
+         )
+        )
+  )
+
+

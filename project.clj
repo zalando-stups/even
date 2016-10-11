@@ -55,5 +55,6 @@
                        :dependencies [[org.clojure/tools.namespace "0.2.10"]
                                       [org.clojure/java.classpath "0.2.2"]
                                       [clj-http-lite "0.3.0"]
+                                      [midje "1.8.3"]
                                       [org.clojure/java.jdbc "0.4.1"]]}})
 
