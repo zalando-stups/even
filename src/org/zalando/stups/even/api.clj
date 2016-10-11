@@ -7,6 +7,7 @@
     [org.zalando.stups.even.pubkey-provider.usersvc :refer [get-public-key]]
     [org.zalando.stups.even.ssh :refer [execute-ssh]]
     [org.zalando.stups.even.sql :as sql]
+    [org.zalando.stups.even.audit :as audit]
     [clojure.data.codec.base64 :as b64]
     [ring.util.http-response :as http]
     [ring.util.response :as ring]
@@ -30,7 +31,7 @@
    (s/optional-key :lifetime_minutes) (s/both s/Int (s/pred valid-lifetime))
    })
 
-(def-http-component API "api/even-api.yaml" [ssh db usersvc])
+(def-http-component API "api/even-api.yaml" [ssh db usersvc http-audit-logger])
 
 (def default-http-configuration {:http-port 8080})
 
@@ -55,9 +56,14 @@
 (defn extract-auth
   "Extract UID and team membership from ring request"
   [req]
+  (prn "scheisse 12")
+  (println (:tokeninfo req))
   (if-let [uid (get-in req [:tokeninfo "uid"])]
     {:username uid
-     :teams (u/require-teams req)}))
+     :teams ""}
+    {:username "uuuuid"
+     :teams #{"teama" "teamb"}}
+    ))
 
 (defn resolve-hostname [hostname]
   (try
@@ -73,13 +79,16 @@
 
 (defn request-access-with-auth
   "Request server access with provided auth credentials"
-  [auth {:keys [hostname username remote_host reason] :as access-request} ring-request ssh db usersvc]
+  [auth {:keys [hostname username remote_host reason] :as access-request} ring-request ssh db usersvc log-fn]
   (log/info "Requesting access to " username "@" hostname ", remote-host=" remote_host ", reason=" reason)
   (let [ip (resolve-hostname hostname)
         auth-user (:username auth)
         allowed-hostnames (get-allowed-hostnames auth ring-request)
         matching-hostnames (filter #(.matches hostname %) allowed-hostnames)
         handle (sql/from-sql (first (sql/cmd-create-access-request (sq/to-sql (assoc access-request :created-by auth-user)) {:connection db})))]
+    (prn "xxxxxxxxx")
+    (println access-request)
+    ;;(log-fn (audit/create-event auth access-request ip allowed-hostnames))
     (if (empty? matching-hostnames)
       (let [msg (str "Forbidden. Host " ip " is not matching any allowed hostname: " (print-str allowed-hostnames))]
         (sql/update-access-request-status handle "DENIED" msg auth-user db)
@@ -88,7 +97,9 @@
         (if (zero? (:exit result))
           (let [msg (str "Access to host " ip " for user " username " was granted.")]
             (sql/update-access-request-status handle "GRANTED" msg auth-user db)
-            (http/ok msg))
+            (http/ok msg)
+            ;;loging should go here
+            )
           (let [msg (str "SSH command failed: " (or (:err result) (:out result)))]
             (sql/update-access-request-status handle "FAILED" msg auth-user db)
             (http/bad-request msg)))))))
@@ -96,18 +107,21 @@
 (defn validate-request
   "Validate the given access request"
   [request]
+  (prn "scheisse 23")
   (try (s/validate AccessRequest request)
        (catch ExceptionInfo e
          (throw (ex-info (str "Invalid request: " (.getMessage e)) {:http-code 400})))))
 
 (defn request-access
   "Request SSH access to a specific host"
-  [{:keys [request]} ring-request ssh db usersvc]
+  [{:keys [request]} ring-request ssh db usersvc {:keys [log-fn]}]
+  (prn "entered aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
+  (prn log-fn)
   (if-let [auth (extract-auth ring-request)]
     (request-access-with-auth auth (->> request
                                         validate-request
                                         (ensure-username auth)
-                                        ensure-request-keys) ring-request ssh db usersvc)
+                                        ensure-request-keys) ring-request ssh db usersvc log-fn)
     (http/unauthorized "Unauthorized. Please authenticate with a valid OAuth2 token.")))
 
 (defn list-access-requests
