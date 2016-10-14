@@ -1,5 +1,5 @@
 (ns org.zalando.stups.even.audit-test
-  (import java.net.InetAddress)
+  (:import java.net.InetAddress)
   (:require [clojure.test :refer :all]
             [midje.sweet :refer :all]
             [org.zalando.stups.even.audit :as audit]))
@@ -22,10 +22,10 @@
             :hostname "hostname",
             :reason "schoko-reason",
             :remote_host "remote_host"},
-         :triggered_at "formatted_datetime",
+         :triggered_at .date.,
          :triggered_by
            {:id "authUserName",
             :type "EMPLOYEE_USERNAME"}}
       (provided
-        (audit/get-date) => "formatted_datetime")))
+        (audit/get-date) => .date.)))
 

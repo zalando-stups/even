@@ -1,6 +1,6 @@
 (ns org.zalando.stups.even.api-test
 
-  (import java.net.InetAddress)
+  (:import java.net.InetAddress)
   (:require [clojure.test :refer :all]
             [org.zalando.stups.even.api :refer :all]
             [midje.sweet :refer :all]

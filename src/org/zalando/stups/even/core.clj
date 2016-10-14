@@ -23,7 +23,7 @@
                    :http-audit-logger (using
                                         (http-logger/map->HTTP {:configuration (:httplogger config)})
                                         [:tokens])
-                   :tokens (oauth2/map->OAUth2TokenRefresher {:configuration oauth2
+                   :tokens (oauth2/map->OAuth2TokenRefresher {:configuration oauth2
                                                               :tokens        {"user-service" ["uid"] :http-audit-logger ["uid"]}})
                    :usersvc (using (new-usersvc usersvc) [:tokens])
                    :ssh (new-ssh ssh)
