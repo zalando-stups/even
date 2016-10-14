@@ -56,14 +56,9 @@
 (defn extract-auth
   "Extract UID and team membership from ring request"
   [req]
-  (prn "scheisse 12")
-  (println (:tokeninfo req))
   (if-let [uid (get-in req [:tokeninfo "uid"])]
     {:username uid
-     :teams ""}
-    {:username "uuuuid"
-     :teams #{"teama" "teamb"}}
-    ))
+     :teams (u/require-teams req)}))
 
 (defn resolve-hostname [hostname]
   (try
@@ -86,9 +81,6 @@
         allowed-hostnames (get-allowed-hostnames auth ring-request)
         matching-hostnames (filter #(.matches hostname %) allowed-hostnames)
         handle (sql/from-sql (first (sql/cmd-create-access-request (sq/to-sql (assoc access-request :created-by auth-user)) {:connection db})))]
-    (prn "xxxxxxxxx")
-    (println access-request)
-    ;;(log-fn (audit/create-event auth access-request ip allowed-hostnames))
     (if (empty? matching-hostnames)
       (let [msg (str "Forbidden. Host " ip " is not matching any allowed hostname: " (print-str allowed-hostnames))]
         (sql/update-access-request-status handle "DENIED" msg auth-user db)
@@ -97,9 +89,8 @@
         (if (zero? (:exit result))
           (let [msg (str "Access to host " ip " for user " username " was granted.")]
             (sql/update-access-request-status handle "GRANTED" msg auth-user db)
-            (http/ok msg)
-            ;;loging should go here
-            )
+            (log-fn (audit/create-event auth access-request ip allowed-hostnames))
+            (http/ok msg))
           (let [msg (str "SSH command failed: " (or (:err result) (:out result)))]
             (sql/update-access-request-status handle "FAILED" msg auth-user db)
             (http/bad-request msg)))))))
@@ -114,8 +105,6 @@
 (defn request-access
   "Request SSH access to a specific host"
   [{:keys [request]} ring-request ssh db usersvc {:keys [log-fn]}]
-  (prn "entered aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
-  (prn log-fn)
   (if-let [auth (extract-auth ring-request)]
     (request-access-with-auth auth (->> request
                                         validate-request
@@ -129,8 +118,3 @@
   (let [result (map sql/from-sql (sql/cmd-list-access-requests (sq/to-sql parameters) {:connection db}))]
     (-> (ring/response result)
         (fring/content-type-json))))
-
-
-
-
-
