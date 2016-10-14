@@ -6,11 +6,11 @@
   :scm {:url "git@github.com:zalando-stups/even"}
   :min-lein-version "2.0.0"
 
-  :dependencies [[org.clojure/clojure "1.7.0"]
-                 [org.zalando.stups/friboo "1.6.0"]
+  :dependencies [[org.clojure/clojure "1.8.0"]
+                 [org.zalando.stups/friboo "1.11.0"]
                  [metosin/ring-http-response "0.6.5"]
                  ; SSH client
-                 [clj-ssh "0.5.11"]
+                 [clj-ssh "0.5.14"]
 
                  [yesql "0.5.1"]
                  [squirrel "0.1.2"]
@@ -55,5 +55,6 @@
                        :dependencies [[org.clojure/tools.namespace "0.2.10"]
                                       [org.clojure/java.classpath "0.2.2"]
                                       [clj-http-lite "0.3.0"]
+                                      [midje "1.8.3"]
                                       [org.clojure/java.jdbc "0.4.1"]]}})
 

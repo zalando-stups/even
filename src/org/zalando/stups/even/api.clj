@@ -7,6 +7,7 @@
     [org.zalando.stups.even.pubkey-provider.usersvc :refer [get-public-key]]
     [org.zalando.stups.even.ssh :refer [execute-ssh]]
     [org.zalando.stups.even.sql :as sql]
+    [org.zalando.stups.even.audit :as audit]
     [clojure.data.codec.base64 :as b64]
     [ring.util.http-response :as http]
     [ring.util.response :as ring]
@@ -30,7 +31,7 @@
    (s/optional-key :lifetime_minutes) (s/both s/Int (s/pred valid-lifetime))
    })
 
-(def-http-component API "api/even-api.yaml" [ssh db usersvc])
+(def-http-component API "api/even-api.yaml" [ssh db usersvc http-audit-logger])
 
 (def default-http-configuration {:http-port 8080})
 
@@ -73,7 +74,7 @@
 
 (defn request-access-with-auth
   "Request server access with provided auth credentials"
-  [auth {:keys [hostname username remote_host reason] :as access-request} ring-request ssh db usersvc]
+  [auth {:keys [hostname username remote_host reason] :as access-request} ring-request ssh db usersvc log-fn]
   (log/info "Requesting access to " username "@" hostname ", remote-host=" remote_host ", reason=" reason)
   (let [ip (resolve-hostname hostname)
         auth-user (:username auth)
@@ -88,6 +89,7 @@
         (if (zero? (:exit result))
           (let [msg (str "Access to host " ip " for user " username " was granted.")]
             (sql/update-access-request-status handle "GRANTED" msg auth-user db)
+            (log-fn (audit/create-event auth access-request ip allowed-hostnames))
             (http/ok msg))
           (let [msg (str "SSH command failed: " (or (:err result) (:out result)))]
             (sql/update-access-request-status handle "FAILED" msg auth-user db)
@@ -102,12 +104,12 @@
 
 (defn request-access
   "Request SSH access to a specific host"
-  [{:keys [request]} ring-request ssh db usersvc]
+  [{:keys [request]} ring-request ssh db usersvc {:keys [log-fn]}]
   (if-let [auth (extract-auth ring-request)]
     (request-access-with-auth auth (->> request
                                         validate-request
                                         (ensure-username auth)
-                                        ensure-request-keys) ring-request ssh db usersvc)
+                                        ensure-request-keys) ring-request ssh db usersvc log-fn)
     (http/unauthorized "Unauthorized. Please authenticate with a valid OAuth2 token.")))
 
 (defn list-access-requests
@@ -116,8 +118,3 @@
   (let [result (map sql/from-sql (sql/cmd-list-access-requests (sq/to-sql parameters) {:connection db}))]
     (-> (ring/response result)
         (fring/content-type-json))))
-
-
-
-
-
