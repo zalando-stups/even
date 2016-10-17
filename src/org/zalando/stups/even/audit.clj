@@ -22,9 +22,10 @@
    :triggered_at (get-date)
    :triggered_by {:type       "EMPLOYEE_USERNAME"
                   :id         (:username auth)}
-   :payload      (drop-nil-values {:hostname (:hostname access-request)
-                  :host_ip (.getHostAddress ip)
-                  :reason (:reason access-request)
-                  :remote_host (:remote_host access-request)
-                  :access_request_lifetime (:lifetime_minutes access-request)
-                  :allowed_hostnames (str/join "," allowed-hostnames)})})
+   :payload      (drop-nil-values
+                   {:hostname (:hostname access-request)
+                    :host_ip (.getHostAddress ip)
+                    :reason (:reason access-request)
+                    :remote_host (:remote_host access-request)
+                    :access_request_lifetime (:lifetime_minutes access-request)
+                    :allowed_hostnames (str/join "," allowed-hostnames)})})
