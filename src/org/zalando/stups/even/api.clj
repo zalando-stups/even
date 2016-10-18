@@ -31,7 +31,7 @@
    (s/optional-key :lifetime_minutes) (s/both s/Int (s/pred valid-lifetime))
    })
 
-(def-http-component API "api/even-api.yaml" [ssh db usersvc http-audit-logger])
+(def-http-component API "api/even-api.yaml" [ssh db usersvc http-audit-logger] :dependencies-as-map true)
 
 (def default-http-configuration {:http-port 8080})
 
@@ -39,7 +39,7 @@
 
 (defn serve-public-key
   "Return the user's public SSH key as plaintext"
-  [{:keys [name]} request _ _ usersvc]
+  [{:keys [name]} request {:keys [usersvc]}]
   (if-let [ssh-key (get-public-key name usersvc)]
     (-> (ring/response ssh-key)
         (ring/header "Content-Type" "text/plain"))
@@ -74,7 +74,7 @@
 
 (defn request-access-with-auth
   "Request server access with provided auth credentials"
-  [auth {:keys [hostname username remote_host reason] :as access-request} ring-request ssh db usersvc log-fn]
+  [auth {:keys [hostname username remote_host reason] :as access-request} ring-request ssh db usersvc {:keys [log-fn]}]
   (log/info "Requesting access to " username "@" hostname ", remote-host=" remote_host ", reason=" reason)
   (let [ip (resolve-hostname hostname)
         auth-user (:username auth)
@@ -104,17 +104,24 @@
 
 (defn request-access
   "Request SSH access to a specific host"
-  [{:keys [request]} ring-request ssh db usersvc {:keys [log-fn]}]
+  [{:keys [request]} ring-request {:keys [ssh db usersvc http-audit-logger]} ]
   (if-let [auth (extract-auth ring-request)]
-    (request-access-with-auth auth (->> request
-                                        validate-request
-                                        (ensure-username auth)
-                                        ensure-request-keys) ring-request ssh db usersvc log-fn)
+    (request-access-with-auth
+      auth
+      (->> request
+           validate-request
+           (ensure-username auth)
+           ensure-request-keys)
+      ring-request
+      ssh
+      db
+      usersvc
+      http-audit-logger)
     (http/unauthorized "Unauthorized. Please authenticate with a valid OAuth2 token.")))
 
 (defn list-access-requests
   "Return list of most recent access requests from database"
-  [parameters _ _ db _]
+  [parameters _ {:keys [db]}]
   (let [result (map sql/from-sql (sql/cmd-list-access-requests (sq/to-sql parameters) {:connection db}))]
     (-> (ring/response result)
         (fring/content-type-json))))

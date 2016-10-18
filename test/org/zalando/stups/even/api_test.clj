@@ -59,10 +59,14 @@
              {}
              {}
              {}
-             (constantly nil))))))
+             {:log-fn (constantly nil)})))))
 
 (deftest test-request-no-auth
-  (is (= {:status 401 :headers {} :body "Unauthorized. Please authenticate with a valid OAuth2 token."} (request-access {:request {:hostname "someStr" :reason "someStr"}} {} {} {} {} (constantly nil)))))
+  (is (= {:status 401 :headers {} :body "Unauthorized. Please authenticate with a valid OAuth2 token."}
+         (request-access
+           {:request {:hostname "someStr" :reason "someStr"}}
+           {}
+           {:ssh nil :db nil :usersvc nil :http-audit-logger nil}))))
 
 (deftest ^:unit test-log-fn-being-called-or-not
   (defn log-fn [] nil)
@@ -71,31 +75,25 @@
   (facts "about log-fn"
 
    (fact "it is being called on successfull handling of ssh access request"
-     (api/request-access-with-auth .auth. {:hostname "www.name.de"} .ring-request. .ssh. .db. .usersvc. log-fn) => (contains {:status 200})
+     (api/request-access-with-auth .auth. {:hostname "www.name.de"} .ring-request. .ssh. .db. .usersvc. {:log-fn log-fn}) => (contains {:status 200})
        (provided
          .auth.           =contains=> {:username "userx" :teams '("someteam")}
          .ring-request.   =contains=> {:configuration {:allowed-hostname-template "www.name.de"}}
-         .ssh.            => irrelevant
-         .db.             => irrelevant
-         .usersvc.        => irrelevant
          (api/resolve-hostname anything) => inet-address
          (sql/cmd-create-access-request anything anything) => '()
-         (ssh/execute-ssh anything anything anything) => {:exit 0}
+         (ssh/execute-ssh anything anything .ssh.) => {:exit 0}
          (sql/update-access-request-status anything anything anything anything anything ) => irrelevant
          (audit/create-event .auth. {:hostname "www.name.de"} inet-address '("www.name.de")) => .created-event.
          (log-fn .created-event.) => {} :times 1))
 
    (fact "it is never called if executing ssh command returns with error"
-      (api/request-access-with-auth .auth. {:hostname "www.name.de"} .ring-request. .ssh. .db. .usersvc. log-fn) => (contains {:status 400})
+      (api/request-access-with-auth .auth. {:hostname "www.name.de"} .ring-request. .ssh. .db. .usersvc. {:log-fn log-fn}) => (contains {:status 400})
         (provided
-          .auth.           =contains=> {:username "userx"}
+          .auth.           =contains=> {:username "userx" :teams '("someteam")}
           .ring-request.   =contains=> {:configuration {:allowed-hostname-template "www.name.de"}}
-          .ssh.            => irrelevant
-          .db.             => irrelevant
-          .usersvc.        => irrelevant
-          (api/resolve-hostname anything) => irrelevant
+          (api/resolve-hostname anything) => .ip.
           (sql/cmd-create-access-request anything anything) => '()
-          (ssh/execute-ssh anything anything anything) => {:exit 1}
+          (ssh/execute-ssh anything anything .ssh.) => {:exit 1}
           (sql/update-access-request-status anything anything anything anything anything ) => irrelevant
           (log-fn anything) => {} :times 0))
 
@@ -104,10 +102,7 @@
         (provided
           .auth.           =contains=> {:username "userx"}
           .ring-request.   =contains=> {:configuration {:allowed-hostname-template "not matching"}}
-          .ssh.            => irrelevant
-          .db.             => irrelevant
-          .usersvc.        => irrelevant
-          (api/resolve-hostname anything) => irrelevant
+          (api/resolve-hostname anything) => .ip.
           (sql/cmd-create-access-request anything anything) => '()
           (sql/update-access-request-status anything anything anything anything anything) => irrelevant
           (log-fn anything) => {} :times 0))))
