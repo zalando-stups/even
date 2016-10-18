@@ -1,12 +1,8 @@
 approvals:
-  minimum: 1
-  # approval = comment that matches this regex
-  pattern: "^(:\\+1:|👍)"
-  # note that `from` is by default empty,
-  # accepting any matching comment as approval
-  from:
-    # commenter must be either one of:
-    orgs:
-      - zalando-stups
-    # OR a collaborator of the repo
-    collaborators: true
+  groups:
+    zalando:
+      minimum: 2
+      from:
+        orgs:
+          - "zalando"
+X-Zalando-Team: "teapot"
