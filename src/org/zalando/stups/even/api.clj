@@ -74,7 +74,7 @@
 
 (defn request-access-with-auth
   "Request server access with provided auth credentials"
-  [auth {:keys [hostname username remote_host reason] :as access-request} ring-request ssh db usersvc log-fn]
+  [auth {:keys [hostname username remote_host reason] :as access-request} ring-request ssh db usersvc {:keys [log-fn]}]
   (log/info "Requesting access to " username "@" hostname ", remote-host=" remote_host ", reason=" reason)
   (let [ip (resolve-hostname hostname)
         auth-user (:username auth)
@@ -104,12 +104,19 @@
 
 (defn request-access
   "Request SSH access to a specific host"
-  [{:keys [request]} ring-request {:keys [ssh db usersvc {:keys [log-fn]}]} ]
+  [{:keys [request]} ring-request {:keys [ssh db usersvc http-audit-logger]} ]
   (if-let [auth (extract-auth ring-request)]
-    (request-access-with-auth auth (->> request
-                                        validate-request
-                                        (ensure-username auth)
-                                        ensure-request-keys) ring-request ssh db usersvc log-fn)
+    (request-access-with-auth
+      auth
+      (->> request
+           validate-request
+           (ensure-username auth)
+           ensure-request-keys)
+      ring-request
+      ssh
+      db
+      usersvc
+      http-audit-logger)
     (http/unauthorized "Unauthorized. Please authenticate with a valid OAuth2 token.")))
 
 (defn list-access-requests
