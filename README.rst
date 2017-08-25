@@ -97,8 +97,8 @@ The following configuration parameters can/should be passed via environment vari
     Boolean flag whether to use agent forwarding (``-A``). Agent forwarding is necessary for bastion host support.
 ``SSH_PORT``
     SSH port number to use (default: 22).
-``SSH_PRIVATE_KEY``
-    The SSH private key (can be encrypted with KMS).
+``SSH_PRIVATE_KEYS``
+    The SSH private keys in PEM format (can be encrypted with KMS).
 ``SSH_USER``
     The SSH username on remote servers (default: "granting-service").
 ``USERSVC_CACHE_BUCKET``

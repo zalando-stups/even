@@ -3,8 +3,8 @@
             [org.zalando.stups.friboo.log :as log]
             [org.zalando.stups.even.sql :as sql]
             [org.zalando.stups.even.ssh :refer [execute-ssh]]
-            [overtone.at-at :refer [every]]
-            ))
+            [overtone.at-at :refer [every]]))
+
 
 (def default-configuration
   {:jobs-cpu-count        1
