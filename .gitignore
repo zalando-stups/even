@@ -8,3 +8,4 @@ profiles.clj
 local-*
 .nrepl*
 scm-source.json
+.testcontainers*

@@ -27,8 +27,8 @@
             [io.sarnowski/lein-docker "1.1.0"]]
 
   :docker {:image-name #=(eval (str (some-> (System/getenv "DEFAULT_DOCKER_REGISTRY")
-                                                      (str "/"))
-                                              "stups/even"))}
+                                            (str "/"))
+                                    "stups/even"))}
 
   :release-tasks [["vcs" "assert-committed"]
                   ["change" "version" "leiningen.release/bump-version" "release"]
@@ -56,5 +56,6 @@
                                       [org.clojure/java.classpath "0.2.2"]
                                       [clj-http-lite "0.3.0"]
                                       [midje "1.8.3"]
+                                      [org.testcontainers/testcontainers "1.4.2"]
                                       [org.clojure/java.jdbc "0.4.1"]]}})
 
