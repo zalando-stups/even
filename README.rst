@@ -2,14 +2,6 @@
 Even - SSH Access Granting Service
 ==================================
 
-.. image:: https://travis-ci.org/zalando-stups/even.svg?branch=master
-   :target: https://travis-ci.org/zalando-stups/even
-   :alt: Travis CI build status
-
-.. image:: https://coveralls.io/repos/zalando-stups/even/badge.svg
-   :target: https://coveralls.io/r/zalando-stups/even
-   :alt: Coveralls status
-
 SSH access granting service to distribute personal public SSH keys on demand.
 
 
@@ -97,8 +89,10 @@ The following configuration parameters can/should be passed via environment vari
     Boolean flag whether to use agent forwarding (``-A``). Agent forwarding is necessary for bastion host support.
 ``SSH_PORT``
     SSH port number to use (default: 22).
-``SSH_PRIVATE_KEY``
-    The SSH private key (can be encrypted with KMS).
+``SSH_PRIVATE_KEYS``
+    The SSH private keys in PEM format. Can be encrypted, since KMS doesn't support data larger than 4k.
+``SSH_PRIVATE_KEY_PASSWORD``
+    Password for the SSH keys, optional.
 ``SSH_USER``
     The SSH username on remote servers (default: "granting-service").
 ``USERSVC_CACHE_BUCKET``
