@@ -35,10 +35,10 @@
           result (s3/get-object :bucket-name bucket
                                 :key (get-s3-key name))]
          (slurp (:input-stream result)))
-  (catch AmazonS3Exception se
+   (catch AmazonS3Exception se
          ; just return null if the S3 object does not exist
-         (when-not (= 404 (.getStatusCode se))
-                   (throw se)))))
+          (when-not (= 404 (.getStatusCode se))
+                    (throw se)))))
 
 (defcommand store-public-key-on-s3
   "Store SSH public key in S3 cache bucket"

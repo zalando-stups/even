@@ -28,8 +28,8 @@
    :hostname                          s/Str
    :reason                            s/Str
    (s/optional-key :remote_host)      s/Str
-   (s/optional-key :lifetime_minutes) (s/both s/Int (s/pred valid-lifetime))
-   })
+   (s/optional-key :lifetime_minutes) (s/both s/Int (s/pred valid-lifetime))})
+
 
 (def-http-component API "api/even-api.yaml" [ssh db usersvc http-audit-logger] :dependencies-as-map true)
 
@@ -104,7 +104,7 @@
 
 (defn request-access
   "Request SSH access to a specific host"
-  [{:keys [request]} ring-request {:keys [ssh db usersvc http-audit-logger]} ]
+  [{:keys [request]} ring-request {:keys [ssh db usersvc http-audit-logger]}]
   (if-let [auth (extract-auth ring-request)]
     (request-access-with-auth
       auth
