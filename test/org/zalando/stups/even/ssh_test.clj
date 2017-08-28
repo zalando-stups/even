@@ -4,7 +4,12 @@
     [org.zalando.stups.even.ssh :refer :all]
     [clj-ssh.ssh :refer :all]
     [clojure.java.io :as io]
-    [clojure.string :as str]))
+    [clojure.string :as str])
+  (:import (org.testcontainers.images.builder ImageFromDockerfile)
+           (org.testcontainers.containers GenericContainer BindMode)
+           (org.testcontainers.containers.wait HostPortWaitStrategy)
+           (java.time Duration)
+           (java.time.temporal ChronoUnit)))
 
 (defn load-key [key-id]
   (-> key-id io/resource slurp str/trim))
@@ -15,39 +20,30 @@
 
 (def all-keys (str key1 "\n" key2))
 
-(defn remove-files
-  [paths]
-  (doseq [path paths]
-    (io/delete-file path true)))
-
-(deftest write-private-keys-test
-  (let [paths (write-private-keys all-keys)]
+(defn test-with-pubkey
+  [pub-key-file]
+  (let [image (-> (ImageFromDockerfile.)
+                (.withFileFromClasspath "Dockerfile", "dockerfile.sshd"))
+        container (doto (GenericContainer. image)
+                    (.addExposedPort (int 22))
+                    (.addFileSystemBind pub-key-file "/root/.ssh/authorized_keys" BindMode/READ_ONLY)
+                    (.setWaitStrategy (-> (HostPortWaitStrategy.)
+                                          (.withStartupTimeout (Duration/of 60 ChronoUnit/SECONDS))))
+                    (.start))]
     (try
-      (is (= [key1 key2]
-             (map
-               #(slurp %)
-               paths)))
+      (is (= {:exit 0, :out "foobar", :err ""}
+             (execute-ssh (.getContainerIpAddress container)
+                          "echo -n foobar"
+                          {:config {:user                 "root"
+                                    :port                 (.getMappedPort container 22)
+                                    :private-keys         all-keys
+                                    :private-key-password "Password"
+                                    :agent-forwarding     true
+                                    :timeout              30}})))
       (finally
-        (remove-files paths)))))
+        (.close container)))))
 
 (deftest test-execute-ssh
-  (let [collected-paths (transient [])
-        collected-keys (transient [])]
-    (try
-      (with-redefs [ssh-agent #(identity %)
-                    add-identity (fn [_ {:keys [private-key-path]}]
-                                   (conj! collected-paths private-key-path)
-                                   (conj! collected-keys (slurp private-key-path)))
-                    session (constantly "session")
-                    connected? (constantly false)
-                    connect (constantly "conn")
-                    disconnect (constantly nil)
-                    set-timeout (constantly nil)
-                    ssh #(identity %2)]
-        (is (= {:cmd "my-command" :agent-forwarding nil}
-               (execute-ssh "my-host" "my-command" {:config {:user         "my-user"
-                                                             :private-keys all-keys}})))
-        (is (= [key1 key2]
-               (persistent! collected-keys))))
-      (finally
-        (remove-files (persistent! collected-paths))))))
+  (doseq [key ["key1.pem.pub" "key2.pem.pub"]]
+    (test-with-pubkey (format "dev-resources/%s" key))))
+

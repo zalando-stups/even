@@ -10,7 +10,8 @@
     [java.nio.file.attribute FileAttribute]
     [java.nio.file Files]
     (java.util UUID)
-    (java.nio.charset StandardCharsets)))
+    (java.nio.charset StandardCharsets)
+    (com.jcraft.jsch JSch)))
 
 (defrecord Ssh [config])
 
