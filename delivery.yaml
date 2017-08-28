@@ -23,7 +23,7 @@ build_steps:
 
   - desc: Build docker image
     cmd: |
-      IMAGE="pierone.stups.zalan.do/stups/even:cdp${CDP_TARGET_REPOSITORY_COUNTER}"
+      IMAGE="pierone.stups.zalan.do/teapot/even:cdp${CDP_TARGET_REPOSITORY_COUNTER}"
       docker build -t "$IMAGE" .
       if [[ "${CDP_TARGET_BRANCH}" = "master" && -z "${CDP_PULL_REQUEST_NUMBER}" ]]; then
         docker push "$IMAGE"
