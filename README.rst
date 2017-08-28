@@ -2,14 +2,6 @@
 Even - SSH Access Granting Service
 ==================================
 
-.. image:: https://travis-ci.org/zalando-stups/even.svg?branch=master
-   :target: https://travis-ci.org/zalando-stups/even
-   :alt: Travis CI build status
-
-.. image:: https://coveralls.io/repos/zalando-stups/even/badge.svg
-   :target: https://coveralls.io/r/zalando-stups/even
-   :alt: Coveralls status
-
 SSH access granting service to distribute personal public SSH keys on demand.
 
 
