@@ -1,9 +1,12 @@
 language: clojure
 
+services:
+  - docker
+
 jdk:
   - oraclejdk8
 
-sudo: false
+sudo: required
 
 after_script:
   - bash -ex coveralls.sh

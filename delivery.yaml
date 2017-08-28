@@ -1,0 +1,22 @@
+build_meta:
+  env:
+    LEIN_ROOT: true
+
+build_steps:
+  - desc: Install dependencies
+    cmd: |
+      apt-get update
+      apt-get install -y openjdk-8-jdk
+
+      # Leiningen
+      curl -o /usr/bin/lein -f https://raw.githubusercontent.com/technomancy/leiningen/stable/bin/lein
+      chmod +x /usr/bin/lein
+
+      # ensure-docker
+      curl -o /tmp/ensure-docker -f https://delivery.cloud.zalando.com/utils/ensure-docker
+      chmod +x /tmp/ensure-docker
+      /tmp/ensure-docker
+
+  - desc: Build and test
+    cmd: |
+      lein do clean, test, uberjar
