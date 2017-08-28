@@ -3,7 +3,6 @@ FROM registry.opensource.zalan.do/stups/openjdk:latest
 MAINTAINER Zalando SE
 
 COPY target/even.jar /
-COPY target/scm-source.json /
 
 EXPOSE 8080
 
