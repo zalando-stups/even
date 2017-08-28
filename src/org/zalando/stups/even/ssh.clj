@@ -9,7 +9,8 @@
     [java.nio.file.attribute PosixFilePermissions]
     [java.nio.file.attribute FileAttribute]
     [java.nio.file Files]
-    (java.util UUID)))
+    (java.util UUID)
+    (java.nio.charset StandardCharsets)))
 
 (defrecord Ssh [config])
 
@@ -49,13 +50,15 @@
 
 (defn execute-ssh
   "Execute the given command on the remote host using the configured SSH user and private key"
-  [hostname command {{:keys [user private-keys port agent-forwarding timeout]} :config}]
+  [hostname command {{:keys [user private-keys private-key-password port agent-forwarding timeout]} :config}]
   (log/info "ssh" user "@" hostname command)
   (let [agent (ssh-agent {:use-system-ssh-agent false
                           :known-hosts-path     "/dev/null"})
         private-key-paths (write-private-keys private-keys)]
     (doseq [path private-key-paths]
-      (add-identity agent {:private-key-path path}))
+      (add-identity agent {:private-key-path path
+                           :passphrase       (some-> private-key-password
+                                                     (.getBytes StandardCharsets/US_ASCII))}))
     (let [session (session agent hostname {:username                 user
                                            :port                     port
                                            :strict-host-key-checking :no})]
