@@ -20,3 +20,11 @@ build_steps:
   - desc: Build and test
     cmd: |
       lein do clean, test, uberjar
+
+  - desc: Build docker image
+    cmd: |
+      IMAGE="pierone.stups.zalan.do/stups/even:cdp${CDP_BUILD_VERSION}"
+      docker build -t "$IMAGE" .
+      if [[ "${CDP_TARGET_BRANCH}" = "master" && -z "${CDP_PULL_REQUEST_NUMBER}" ]]; then
+        docker push "$IMAGE"
+      fi
