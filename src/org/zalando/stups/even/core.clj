@@ -11,8 +11,8 @@
             [org.zalando.stups.friboo.system.audit-logger.http :as http-logger]
             [org.zalando.stups.even.job :as job]
             [org.zalando.stups.even.pubkey-provider.usersvc :refer [new-usersvc]]
-            [org.zalando.stups.even.ssh :refer [new-ssh default-ssh-configuration]]
-            ))
+            [org.zalando.stups.even.ssh :refer [new-ssh default-ssh-configuration]]))
+
 
 (defn new-system
   "Returns a new instance of the whole application"

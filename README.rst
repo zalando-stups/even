@@ -90,7 +90,7 @@ The following configuration parameters can/should be passed via environment vari
 ``SSH_PORT``
     SSH port number to use (default: 22).
 ``SSH_PRIVATE_KEYS``
-    The SSH private keys in PEM format. Can be encrypted, since KMS doesn't support data larger than 4k.
+    SSH private keys in PEM format, encoded in Base64. Can be encrypted, since KMS doesn't support data larger than 4k.
 ``SSH_PRIVATE_KEY_PASSWORD``
     Password for the SSH keys, optional.
 ``SSH_USER``
