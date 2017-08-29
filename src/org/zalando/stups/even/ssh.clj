@@ -4,16 +4,28 @@
             [clojure.java.io :as io]
             [org.zalando.stups.friboo.config :as config]
             [com.netflix.hystrix.core :refer [defcommand]]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [com.stuartsierra.component :as component])
   (:import
     [java.nio.file.attribute PosixFilePermissions]
     [java.nio.file.attribute FileAttribute]
     [java.nio.file Files]
-    (java.util UUID)
-    (java.nio.charset StandardCharsets)
-    (com.jcraft.jsch JSch)))
+    (java.util UUID Base64)
+    (java.nio.charset StandardCharsets)))
 
-(defrecord Ssh [config])
+(defrecord Ssh [config]
+  component/Lifecycle
+  (start [component]
+    (let [decoded-keys (as-> (:private-keys config) keys
+                             (str/trim keys)
+                             (.decode (Base64/getDecoder) keys)
+                             (String. keys StandardCharsets/US_ASCII)
+                             (str/split keys #"(?=-----BEGIN)")
+                             (map str/trim keys)
+                             (filter not-empty keys))]
+      (assoc component :private-keys decoded-keys)))
+  (stop [component]
+    (dissoc component :private-keys)))
 
 (def default-ssh-configuration {:ssh-user             "granting-service"
                                 :ssh-port             22
@@ -33,29 +45,16 @@
     (spit path key)
     path))
 
-(defn split-keys
-  "Extract all keys contained in a single string into a sequence of keys"
-  [key-str]
-  (->> (str/split key-str #"(?=-----BEGIN)")
-    (map str/trim)
-    (filter not-empty)))
-
-(defn write-private-keys
-  "Takes a string containing multiple private keys, writes each of them to an individual file and returns
-   a sequence of paths to these files"
-  [key-str]
-  (map write-key-to-file (split-keys key-str)))
-
 (defn set-timeout [session timeout]
   (.setTimeout session timeout))
 
 (defn execute-ssh
   "Execute the given command on the remote host using the configured SSH user and private key"
-  [hostname command {{:keys [user private-keys private-key-password port agent-forwarding timeout]} :config}]
+  [hostname command {{:keys [user private-key-password port agent-forwarding timeout]} :config private-keys :private-keys}]
   (log/info "ssh" user "@" hostname command)
   (let [agent (ssh-agent {:use-system-ssh-agent false
                           :known-hosts-path     "/dev/null"})
-        private-key-paths (write-private-keys private-keys)]
+        private-key-paths (doall (map write-key-to-file private-keys))]
     (doseq [path private-key-paths]
       (add-identity agent {:private-key-path path
                            :passphrase       (some-> private-key-password
