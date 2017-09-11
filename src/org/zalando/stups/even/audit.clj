@@ -18,7 +18,7 @@
   [auth access-request ip allowed-hostnames]
   {:event_type   {:namespace "cloud.zalando.com"
                   :name      "request-ssh-access"
-                  :version   "1.0"}
+                  :version   "1.1"}
    :triggered_at (get-date)
    :triggered_by {:type       "EMPLOYEE_USERNAME"
                   :id         (:username auth)}
