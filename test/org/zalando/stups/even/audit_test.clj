@@ -12,10 +12,10 @@
         {:hostname "hostname" :reason "schoko-reason" :remote_host "remote_host" :lifetime_minutes 66}
         (InetAddress/getByName "www.name.de")
         '("allowed1" "allowed2"))
-        =>
+      =>
         {:event_type
           {:name "request-ssh-access",
-           :namespace "cloud.zalando.com", :version "1.0"},
+           :namespace "cloud.zalando.com", :version "1.1"},
            :payload
              {:access_request_lifetime 66,
               :allowed_hostnames "allowed1,allowed2",
@@ -36,10 +36,10 @@
         {:hostname "hostname" :lifetime_minutes 66}
         (InetAddress/getByName "www.name.de")
         '("allowed1" "allowed2"))
-        =>
+      =>
         {:event_type
           {:name "request-ssh-access",
-           :namespace "cloud.zalando.com", :version "1.0"},
+           :namespace "cloud.zalando.com", :version "1.1"},
            :payload
              {:access_request_lifetime 66,
               :allowed_hostnames "allowed1,allowed2",
