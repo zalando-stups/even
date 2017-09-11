@@ -22,11 +22,11 @@
                    :db (sql/map->DB {:configuration db})
                    :http-audit-logger (using
                                         (http-logger/map->HTTP {:configuration (assoc (:httplogger config)
-                                                                                 :token-name :http-audit-logger)})
+                                                                                 :token-name "http-audit-logger")})
                                         [:tokens])
                    :tokens (oauth2/map->OAuth2TokenRefresher {:configuration oauth2
                                                               :tokens        {"user-service" ["uid"]
-                                                                              :http-audit-logger ["uid"]}})
+                                                                              "http-audit-logger" ["uid"]}})
                    :usersvc (using (new-usersvc usersvc) [:tokens])
                    :ssh (new-ssh ssh)
                    :jobs (using (job/map->Jobs {:configuration jobs}) [:ssh :db])))
