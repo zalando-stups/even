@@ -22,6 +22,7 @@ SELECT COUNT(*) AS count
   FROM access_requests
  WHERE ar_status = 'GRANTED'
    AND ar_hostname = :hostname
+   AND ar_username = :username
    AND ar_id != :id
 
 -- name: create-access-request
