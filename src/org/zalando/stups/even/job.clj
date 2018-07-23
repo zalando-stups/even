@@ -32,8 +32,8 @@
 
 (defn revoke-ssh-access
   "Revoke SSH access to the given host/remote host"
-  [ssh db {:keys [id hostname remote_host username created lifetime_minutes status status_reason] :as req}]
-  (let [remaining-count (:count (first (sql/count-remaining-granted-access-requests {:hostname hostname :id id} {:connection db})))
+  [ssh db {:keys [id hostname remote_host username] :as req}]
+  (let [remaining-count (:count (first (sql/count-remaining-granted-access-requests {:hostname hostname :username username :id id} {:connection db})))
         remote_host_or_nil (when-not (retry-revocation-without-remote-host? req) remote_host)
         options (get-revoke-ssh-access-options remote_host_or_nil username remaining-count)]
     (execute-ssh hostname (clojure.string/join " " options) ssh)))
