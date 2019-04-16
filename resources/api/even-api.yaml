@@ -3,6 +3,7 @@ swagger: '2.0'
 info:
   version: "0.1"
   title: even
+  x-api-id: c579a373-82a3-4b33-ad26-af1de73b907d
   description: SSH access granting service
 
 basePath: /
