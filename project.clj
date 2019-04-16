@@ -55,6 +55,6 @@
                                       [org.clojure/java.classpath "0.2.2"]
                                       [clj-http-lite "0.3.0"]
                                       [midje "1.8.3"]
-                                      [org.testcontainers/testcontainers "1.4.2"]
+                                      [org.testcontainers/testcontainers "1.11.2"]
                                       [org.clojure/java.jdbc "0.4.1"]]}})
 
