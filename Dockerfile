@@ -1,4 +1,4 @@
-FROM registry.opensource.zalan.do/stups/openjdk:latest
+FROM registry.opensource.zalan.do/library/openjdk-8:latest
 
 MAINTAINER Zalando SE
 
@@ -9,5 +9,4 @@ EXPOSE 8080
 
 VOLUME /tmp
 
-CMD java $JAVA_OPTS $(java-dynamic-memory-opts) -jar /even.jar
-
+CMD java $JAVA_OPTS -jar /even.jar
