@@ -9,4 +9,10 @@ EXPOSE 8080
 
 VOLUME /tmp
 
-CMD java $JAVA_OPTS -jar /even.jar
+ENTRYPOINT ["java", \
+            "-XX:InitialRAMPercentage=80.0", \
+            "-XX:MinRAMPercentage=80.0", \
+            "-XX:MaxRAMPercentage=80.0", \
+            "-XX:+ExitOnOutOfMemoryError", \
+            "-jar", \
+            "even.jar"]
