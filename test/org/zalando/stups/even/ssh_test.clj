@@ -21,10 +21,11 @@
 (defn test-with-pubkey
   [pub-key-file]
   (let [image (-> (ImageFromDockerfile.)
-                (.withFileFromClasspath "Dockerfile", "dockerfile.sshd"))
+                (.withFileFromClasspath "Dockerfile", "dockerfile.sshd")
+                (.withFileFromClasspath "entrypoint.sh", "entrypoint.sh"))
         container (doto (GenericContainer. image)
                     (.addExposedPort (int 22))
-                    (.addFileSystemBind pub-key-file "/root/.ssh/authorized_keys" BindMode/READ_ONLY)
+                    (.addFileSystemBind pub-key-file "/authorized_keys" BindMode/READ_ONLY)
                     (.setWaitStrategy (-> (HostPortWaitStrategy.)
                                           (.withStartupTimeout (Duration/of 60 ChronoUnit/SECONDS))))
                     (.start))]
